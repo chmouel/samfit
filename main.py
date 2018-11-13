@@ -12,6 +12,7 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
+import time
 import humanfriendly
 import json
 import tr
@@ -28,6 +29,13 @@ DAYS = ["Monday", "Tuesday", "Wednesday",
 
 PLAN_NAME = None
 
+
+def wash_description(text):
+    text = text.replace("\r", "\n")
+    text = html2text.html2text(text).strip()
+    return "\n".join(["> " + x for x in text.split("\n")])
+
+
 def get_session(username, password):
     tpsess = tr.TRconnect(username, password)
     tpsess.init()
@@ -41,31 +49,35 @@ def write_get_tp(tpsess, tptype, iid, output_file):
     if not os.path.exists(os.path.dirname(output_file)):
         os.makedirs(os.path.dirname(output_file))
 
-    cp = tpsess.session.get(
-        f'https://www.trainerroad.com/api/{tptype}/{iid}')
+    url = f'https://www.trainerroad.com/api/{tptype}/{iid}'
+    print("Getting: " + url)
+    cp = tpsess.session.get(url)
 
     if cp.status_code != 200:
         raise Exception("Humm booya")
 
     open(output_file, 'w').write(cp.text)
+    time.sleep(2)
     return cp.json()
 
 
 def parse_plan(tpsess, plan, plan_number):
-    plan_name = plan['ShortName'].replace(" ", "_")
-    base_plandir = os.path.join(BASE_DIR, plan_name, "workouts")
-    base_zwiftdir = os.path.join(ZWIFT_BASE_DIR, "Trainerroad-" + plan_name)
+    plan_name = plan['ShortName']
+    plan_category = plan['CategoryJson']['Child']['Name']
+    base_plandir = os.path.join(BASE_DIR,
+                                plan_category.replace(" ", "_"),
+                                plan_name.replace(" ", "_"))
+    base_zwiftdir = os.path.join(ZWIFT_BASE_DIR,
+                                 'Trainerroad',
+                                 plan_category,
+                                 plan_name)
     text = ""
-    plan_textfile = os.path.join(BASE_DIR, plan_name, "README.md")
-
-    text = f"# Trainer Road Plan: {plan['ShortName']}\n\n"
+    plan_textfile = os.path.join(base_plandir, "README.md")
+    text = f"# Trainer Road Plan: {plan['Name']}\n\n"
 
     for currentweek in plan['Weeks']:
         text += f"## {currentweek['Name']}\n\n"
-        text += ("<pre>\n" +
-                 html2text.html2text(currentweek['Description']).strip() +
-                 "\n</pre>\n"
-        )
+        text += wash_description(currentweek['Description']) + "\n"
 
         for key in DAYS:
             if key not in currentweek:
@@ -76,32 +88,42 @@ def parse_plan(tpsess, plan, plan_number):
                 continue
             for workout in currentweek[key]:
                 w = workout["Workout"]
-                wdetailfile = os.path.join(base_plandir, f'{w["Id"]}.json')
-                wdetail = write_get_tp(
-                    tpsess, 'workoutdetails', w['Id'], wdetailfile)
-                zfile = os.path.join(base_zwiftdir, w["Name"] + ".zwo")
-                zwift.generate_zwo(wdetail, plan_number, zfile)
+                # TRIATHLON
+                if w['Id'] == 0:
+                    wdetail = w
+                else:
+                    wdetailfile = os.path.join(
+                        base_plandir,
+                        "workouts", f'{w["Id"]}.json')
+                    wdetail = write_get_tp(
+                        tpsess, 'workoutdetails', w['Id'], wdetailfile)
 
-                humantime = humanfriendly.format_timespan(w['Duration'] * 60)
-                text += (f'* **Name**: {w["Name"]}\n'
-                         f'* **Duration**: {humantime}\n'
-                         f'* **TSS**: {w["TSS"]}\n'
-                         f'* **NP**: {round(w["NormalizedPower"])}\n'
-                         f'* **IF**: {round(w["IntensityFactor"])}%\n\n')
-                text += ("**Description**:\n")
-                text += ("<pre>\n" +
-                         html2text.html2text(w['Description']).strip() +
-                         "\n</pre>\n")
+                    zfile = os.path.join(base_zwiftdir, w["Name"] + ".zwo")
+                    zwift.generate_zwo(wdetail, plan_number, zfile)
 
-    if not os.path.exists(plan_textfile):
-        print("W" + " " + plan_textfile)
-        open(plan_textfile, 'w').write(text)
+                if w['Duration'] != 0:
+                    humantime = (
+                        humanfriendly.format_timespan(w['Duration'] * 60))
+                else:
+                    humantime = None
+                text += (f'* **Name**: {w["Name"]}\n')
+                if humantime:
+                    text += (f'* **Duration**: {humantime}\n')
+                if round(w['TSS']) != 0:
+                    text += (f'* **TSS**: {w["TSS"]}\n')
+                if round(w['NormalizedPower']) != 0:
+                    text += (f'* **NP**: {round(w["NormalizedPower"])}\n')
+                if round(w['TSS']) != 0:
+                    text += (f'* **IF**: {round(w["IntensityFactor"])}%')
+                text += ("\n\n")
+                text += ("**Description**:\n\n")
+                text += wash_description(w['Description']) + "\n"
+
+    print("W" + " " + plan_textfile)
     open(plan_textfile, 'w').write(text)
 
 
 if __name__ == '__main__':
-    PLAN_NUMBER = 146
-
     password = subprocess.Popen(
         ["security", "find-generic-password", "-a",
          "chmouel", "-s", "trainerroad", "-w"],
@@ -109,7 +131,10 @@ if __name__ == '__main__':
     ).communicate()[0].strip()
     username = 'samfit'
 
-    tpsess = get_session(username, password)
-    plan_file = os.path.join(BASE_DIR, "plan-" + str(PLAN_NUMBER) + ".json")
-    plan = write_get_tp(tpsess, "plans", PLAN_NUMBER, plan_file)
-    parse_plan(tpsess, plan, PLAN_NUMBER)
+    RANGE = [219]
+    for plan_number in RANGE:
+        tpsess = get_session(username, password)
+        plan_file = os.path.join(BASE_DIR, "plan-" +
+                                 str(plan_number) + ".json")
+        plan = write_get_tp(tpsess, "plans", plan_number, plan_file)
+        parse_plan(tpsess, plan, plan_number)
