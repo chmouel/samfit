@@ -86,7 +86,14 @@ def parse_plan(tpsess, plan, plan_number):
             if not currentweek[key]:
                 text += (f"Rest Day\n\n")
                 continue
+
+            multiple = len(currentweek[key]) > 1
+            idx = 0
             for workout in currentweek[key]:
+                idx += 1
+                if multiple:
+                    text += (f"#### Workout {idx}\n")
+
                 w = workout["Workout"]
                 # TRIATHLON
                 if w['Id'] == 0:
