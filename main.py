@@ -124,7 +124,7 @@ def parse_plan(tpsess, plan, plan_number):
                     text += (f'* **IF**: {round(w["IntensityFactor"])}%')
                 text += ("\n\n")
                 text += ("**Description**:\n\n")
-                text += wash_description(w['Description']) + "\n"
+                text += wash_description(w['Description']) + "\n\n"
 
     print("W" + " " + plan_textfile)
     open(plan_textfile, 'w').write(text)
@@ -138,7 +138,8 @@ if __name__ == '__main__':
     ).communicate()[0].strip()
     username = 'samfit'
 
-    RANGE = [219]
+    # RANGE = [216, 217, 218]
+    RANGE = range(151, 159 + 1)
     for plan_number in RANGE:
         tpsess = get_session(username, password)
         plan_file = os.path.join(BASE_DIR, "plan-" +
