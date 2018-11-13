@@ -20,6 +20,7 @@ import subprocess
 import html2text
 import os.path
 import zwift
+import gzip
 
 
 ZWIFT_BASE_DIR = os.path.expanduser("~/Documents/Zwift/Workouts")
@@ -45,6 +46,8 @@ def get_session(username, password):
 def write_get_tp(tpsess, tptype, iid, output_file):
     if os.path.exists(output_file):
         return json.load(open(output_file))
+    elif os.path.exists(output_file + ".gz"):
+        return json.load(gzip.open(output_file + ".gz"))
 
     if not os.path.exists(os.path.dirname(output_file)):
         os.makedirs(os.path.dirname(output_file))
@@ -65,10 +68,19 @@ def parse_plan(tpsess, plan, plan_number):
     plan_name = plan['ShortName']
 
     plan_category = plan['CategoryJson']['Child']['Name']
+    if 'Child' in plan['CategoryJson']['Child'] and \
+       plan['CategoryJson']['Child']['Child']:
+        plan_category += "-" + plan['CategoryJson']['Child']['Child']['Name']
+
+    print(plan_category + " ->   " + plan_name)
+    if plan_name.startswith(plan_category):
+        plan_name = plan_name.remove(plan_category)
+
     base_zwiftdir = os.path.join(ZWIFT_BASE_DIR,
                                  'Trainerroad',
                                  plan_category,
                                  plan_name)
+
     plan_textfile = os.path.join(BASE_DIR,
                                  "docs",
                                  plan_category.replace(" ", "_") +
@@ -143,13 +155,12 @@ if __name__ == '__main__':
     tpsess = get_session(username, password)
 
     # RANGE = [216, 217, 218]
-    RANGE = range(168, 176 + 1)
-    RANGE = [123, 124, 125, 126, 127, 128, 129, 130, 131, 145, 146, 147, 148,
-             149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 168, 169,
-             170, 171,
-             172, 173, 174, 175, 176, 216, 217, 218, 219, 220, 221, 222, 223,
-             224, 225,
-             226, 227, 228, 229, 230, 231, 232, 233]
+    import glob
+    RANGE = sorted([
+        int(os.path.basename(x).replace(".json", "").replace(".gz", "").replace("plan-", "")) for x in
+      glob.glob(os.path.join(BASE_DIR, "plans", "*.json*"))])
+    # RANGE = range(234, 245 + 1)
+    # RANGE = range(160, 165 + 1)
 
     for plan_number in RANGE:
         plan_file = os.path.join(BASE_DIR, "plans", "plan-" +
