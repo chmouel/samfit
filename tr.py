@@ -16,11 +16,7 @@ import fcntl
 import requests
 import tempfile
 import time
-import datetime
-import json
-import subprocess
 
-from dateutil.relativedelta import relativedelta
 
 class TRconnect(object):
     _obligatory_headers = {

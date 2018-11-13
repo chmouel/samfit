@@ -18,11 +18,15 @@ import tr
 import subprocess
 import html2text
 import os.path
+import zwift
 
-BASE_DIR = "/tmp/traineroad"
+
+ZWIFT_BASE_DIR = os.path.expanduser("~/Documents/Zwift/Workouts")
+BASE_DIR = os.path.expanduser("~/Dropbox/Documents/Fitness/traineroad")
 DAYS = ["Monday", "Tuesday", "Wednesday",
         "Thursday", "Friday", "Saturday", "Sunday"]
 
+PLAN_NAME = None
 
 def get_session(username, password):
     tpsess = tr.TRconnect(username, password)
@@ -47,35 +51,52 @@ def write_get_tp(tpsess, tptype, iid, output_file):
     return cp.json()
 
 
-def parse_plan(tpsess, plan):
+def parse_plan(tpsess, plan, plan_number):
     plan_name = plan['ShortName'].replace(" ", "_")
     base_plandir = os.path.join(BASE_DIR, plan_name, "workouts")
+    base_zwiftdir = os.path.join(ZWIFT_BASE_DIR, "Trainerroad-" + plan_name)
+    text = ""
+    plan_textfile = os.path.join(BASE_DIR, plan_name, "README.md")
+
+    text = f"# Trainer Road Plan: {plan['ShortName']}\n\n"
 
     for currentweek in plan['Weeks']:
-        print(currentweek['Name'] + ": ")
-        print(html2text.html2text(currentweek['Description']))
+        text += f"## {currentweek['Name']}\n\n"
+        text += ("<pre>\n" +
+                 html2text.html2text(currentweek['Description']).strip() +
+                 "\n</pre>\n"
+        )
 
         for key in DAYS:
             if key not in currentweek:
                 continue
-            print(f"{key}: ")
+            text += (f"\n### {key} \n\n")
             if not currentweek[key]:
-                print(f"Rest Day\n")
+                text += (f"Rest Day\n\n")
                 continue
             for workout in currentweek[key]:
                 w = workout["Workout"]
                 wdetailfile = os.path.join(base_plandir, f'{w["Id"]}.json')
-                print(wdetailfile)
-                # wdetail = write_get_tp(
-                #     tpsess, 'workoutdetails', w['Id'], wdetailfile)
+                wdetail = write_get_tp(
+                    tpsess, 'workoutdetails', w['Id'], wdetailfile)
+                zfile = os.path.join(base_zwiftdir, w["Name"] + ".zwo")
+                zwift.generate_zwo(wdetail, plan_number, zfile)
 
                 humantime = humanfriendly.format_timespan(w['Duration'] * 60)
-                print(f'Workout: {w["Name"]} TSS: {w["TSS"]}'
-                      f' Duration: {humantime}'
-                      f' NP: {round(w["NormalizedPower"])}'
-                      f' IF: {round(w["IntensityFactor"])}%')
-                print("Description:")
-                print(html2text.html2text(w['Description']))
+                text += (f'* **Name**: {w["Name"]}\n'
+                         f'* **Duration**: {humantime}\n'
+                         f'* **TSS**: {w["TSS"]}\n'
+                         f'* **NP**: {round(w["NormalizedPower"])}\n'
+                         f'* **IF**: {round(w["IntensityFactor"])}%\n\n')
+                text += ("**Description**:\n")
+                text += ("<pre>\n" +
+                         html2text.html2text(w['Description']).strip() +
+                         "\n</pre>\n")
+
+    if not os.path.exists(plan_textfile):
+        print("W" + " " + plan_textfile)
+        open(plan_textfile, 'w').write(text)
+    open(plan_textfile, 'w').write(text)
 
 
 if __name__ == '__main__':
@@ -89,6 +110,6 @@ if __name__ == '__main__':
     username = 'samfit'
 
     tpsess = get_session(username, password)
-    plan_file = f'/tmp/workout-plan-{PLAN_NUMBER}.json'
+    plan_file = os.path.join(BASE_DIR, "plan-" + str(PLAN_NUMBER) + ".json")
     plan = write_get_tp(tpsess, "plans", PLAN_NUMBER, plan_file)
-    parse_plan(tpsess, plan)
+    parse_plan(tpsess, plan, PLAN_NUMBER)
