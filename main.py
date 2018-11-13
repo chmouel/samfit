@@ -63,16 +63,18 @@ def write_get_tp(tpsess, tptype, iid, output_file):
 
 def parse_plan(tpsess, plan, plan_number):
     plan_name = plan['ShortName']
+
     plan_category = plan['CategoryJson']['Child']['Name']
-    base_plandir = os.path.join(BASE_DIR,
-                                plan_category.replace(" ", "_"),
-                                plan_name.replace(" ", "_"))
     base_zwiftdir = os.path.join(ZWIFT_BASE_DIR,
                                  'Trainerroad',
                                  plan_category,
                                  plan_name)
-    text = ""
-    plan_textfile = os.path.join(base_plandir, "README.md")
+    plan_textfile = os.path.join(BASE_DIR,
+                                 "docs",
+                                 plan_category.replace(" ", "_") +
+                                 "-" +
+                                 plan_name.replace(" ", "_") + ".md")
+
     text = f"# Trainer Road Plan: {plan['Name']}\n\n"
 
     for currentweek in plan['Weeks']:
@@ -100,8 +102,7 @@ def parse_plan(tpsess, plan, plan_number):
                     wdetail = w
                 else:
                     wdetailfile = os.path.join(
-                        base_plandir,
-                        "workouts", f'{w["Id"]}.json')
+                        BASE_DIR, "workout", f'{w["Id"]}.json')
                     wdetail = write_get_tp(
                         tpsess, 'workoutdetails', w['Id'], wdetailfile)
 
@@ -126,8 +127,10 @@ def parse_plan(tpsess, plan, plan_number):
                 text += ("**Description**:\n\n")
                 text += wash_description(w['Description']) + "\n\n"
 
-    print("W" + " " + plan_textfile)
+    if not os.path.exists(os.path.dirname(plan_textfile)):
+        os.makedirs(os.path.dirname(plan_textfile))
     open(plan_textfile, 'w').write(text)
+    return plan_textfile
 
 
 if __name__ == '__main__':
@@ -137,12 +140,19 @@ if __name__ == '__main__':
         stdout=subprocess.PIPE
     ).communicate()[0].strip()
     username = 'samfit'
+    tpsess = get_session(username, password)
 
     # RANGE = [216, 217, 218]
-    RANGE = range(151, 159 + 1)
+    RANGE = range(168, 176 + 1)
+    RANGE = [123, 124, 125, 126, 127, 128, 129, 130, 131, 145, 146, 147, 148,
+             149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 168, 169,
+             170, 171,
+             172, 173, 174, 175, 176, 216, 217, 218, 219, 220, 221, 222, 223,
+             224, 225,
+             226, 227, 228, 229, 230, 231, 232, 233]
+
     for plan_number in RANGE:
-        tpsess = get_session(username, password)
-        plan_file = os.path.join(BASE_DIR, "plan-" +
+        plan_file = os.path.join(BASE_DIR, "plans", "plan-" +
                                  str(plan_number) + ".json")
         plan = write_get_tp(tpsess, "plans", plan_number, plan_file)
         parse_plan(tpsess, plan, plan_number)
