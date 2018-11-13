@@ -72,10 +72,6 @@ def parse_plan(tpsess, plan, plan_number):
        plan['CategoryJson']['Child']['Child']:
         plan_category += "-" + plan['CategoryJson']['Child']['Child']['Name']
 
-    print(plan_category + " ->   " + plan_name)
-    if plan_name.startswith(plan_category):
-        plan_name = plan_name.remove(plan_category)
-
     base_zwiftdir = os.path.join(ZWIFT_BASE_DIR,
                                  'Trainerroad',
                                  plan_category,
@@ -88,6 +84,7 @@ def parse_plan(tpsess, plan, plan_number):
                                  plan_name.replace(" ", "_") + ".md")
 
     text = f"# Trainer Road Plan: {plan['Name']}\n\n"
+    text += wash_description(plan['Description']) + "\n\n"
 
     for currentweek in plan['Weeks']:
         text += f"## {currentweek['Name']}\n\n"
