@@ -12,15 +12,16 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
-import time
+import gzip
+import html2text
 import humanfriendly
 import json
-import tr
-import subprocess
-import html2text
 import os.path
+import re
+import subprocess
+import time
+import tr
 import zwift
-import gzip
 
 
 ZWIFT_BASE_DIR = os.path.expanduser("~/Documents/Zwift/Workouts")
@@ -154,8 +155,9 @@ if __name__ == '__main__':
     # RANGE = [216, 217, 218]
     import glob
     RANGE = sorted([
-        int(os.path.basename(x).replace(".json", "").replace(".gz", "").replace("plan-", "")) for x in
-      glob.glob(os.path.join(BASE_DIR, "plans", "*.json*"))])
+        int(re.sub(r"plan-(\d+).json(.gz)?", r"\1", os.path.basename(x)))
+        for x in glob.glob(os.path.join(BASE_DIR, "plans", "*.json*"))])
+
     # RANGE = range(234, 245 + 1)
     # RANGE = range(160, 165 + 1)
 
