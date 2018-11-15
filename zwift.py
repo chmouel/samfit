@@ -15,8 +15,6 @@
 import html2text
 import os.path
 
-# workout = json.load(open("/tmp/traineroad/Low_Volume_II/workouts/1650.json"))
-
 ZWIFT_XML = """
 <workout_file>
     <author>Trainer Road - {plan_name}</author>
@@ -27,6 +25,7 @@ ZWIFT_XML = """
     <tags/>
     <workout>
 """
+
 
 def generate_zwo(workout, plan_number, output_file):
     if os.path.exists(output_file):

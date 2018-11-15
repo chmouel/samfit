@@ -13,23 +13,28 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 import gzip
-import html2text
-import humanfriendly
 import json
 import os.path
 import re
 import subprocess
 import time
+
+import html2text
+import humanfriendly
+
 import tr
 import zwift
+import tp
 
-
+TR_USERNAME = 'samfit'
+TP_USERNAME = 'chmouel'
 ZWIFT_BASE_DIR = os.path.expanduser("~/Documents/Zwift/Workouts")
 BASE_DIR = os.path.expanduser("~/Dropbox/Documents/Fitness/traineroad")
 DAYS = ["Monday", "Tuesday", "Wednesday",
         "Thursday", "Friday", "Saturday", "Sunday"]
 
 PLAN_NAME = None
+TR_EXERCISE_LIBRARY = 1235575
 
 
 def wash_description(text):
@@ -38,13 +43,7 @@ def wash_description(text):
     return "\n".join(["> " + x for x in text.split("\n")])
 
 
-def get_session(username, password):
-    tpsess = tr.TRconnect(username, password)
-    tpsess.init()
-    return tpsess
-
-
-def write_get_tp(tpsess, tptype, iid, output_file):
+def write_get_tr(trsess, trtype, iid, output_file):
     if os.path.exists(output_file):
         return json.load(open(output_file))
     elif os.path.exists(output_file + ".gz"):
@@ -53,9 +52,9 @@ def write_get_tp(tpsess, tptype, iid, output_file):
     if not os.path.exists(os.path.dirname(output_file)):
         os.makedirs(os.path.dirname(output_file))
 
-    url = f'https://www.trainerroad.com/api/{tptype}/{iid}'
+    url = f'https://www.trainerroad.com/api/{trtype}/{iid}'
     print("Getting: " + url)
-    cp = tpsess.session.get(url)
+    cp = trsess.session.get(url)
 
     if cp.status_code != 200:
         raise Exception("Humm booya")
@@ -65,7 +64,7 @@ def write_get_tp(tpsess, tptype, iid, output_file):
     return cp.json()
 
 
-def parse_plan(tpsess, plan, plan_number):
+def parse_plan(trsess, tpsess, plan, plan_number):
     plan_name = plan['ShortName']
 
     plan_category = plan['CategoryJson']['Child']['Name']
@@ -113,11 +112,14 @@ def parse_plan(tpsess, plan, plan_number):
                 else:
                     wdetailfile = os.path.join(
                         BASE_DIR, "workout", f'{w["Id"]}.json')
-                    wdetail = write_get_tp(
-                        tpsess, 'workoutdetails', w['Id'], wdetailfile)
+                    wdetail = write_get_tr(
+                        trsess, 'workoutdetails', w['Id'], wdetailfile)
 
-                    zfile = os.path.join(base_zwiftdir, w["Name"] + ".zwo")
-                    zwift.generate_zwo(wdetail, plan_number, zfile)
+                    if w["Name"] != "Ramp Test":
+                        zfile = os.path.join(base_zwiftdir, w["Name"] + ".zwo")
+                        zwift.generate_zwo(wdetail, plan_number, zfile)
+
+                        tpsess.create_tr_workout(wdetail, TR_EXERCISE_LIBRARY)
 
                 if w['Duration'] != 0:
                     humantime = (
@@ -149,8 +151,16 @@ if __name__ == '__main__':
          "chmouel", "-s", "trainerroad", "-w"],
         stdout=subprocess.PIPE
     ).communicate()[0].strip()
-    username = 'samfit'
-    tpsess = get_session(username, password)
+    trsess = tr.TRconnect(TR_USERNAME, password)
+    trsess.init()
+
+    password = subprocess.Popen(
+        ["security", "find-generic-password", "-a",
+         "chmouel", "-s", "trainingpeaks", "-w"],
+        stdout=subprocess.PIPE
+    ).communicate()[0].strip()
+    tpsess = tp.TPconnect(TP_USERNAME, password)
+    tpsess.init()
 
     # RANGE = [216, 217, 218]
     import glob
@@ -164,5 +174,5 @@ if __name__ == '__main__':
     for plan_number in RANGE:
         plan_file = os.path.join(BASE_DIR, "plans", "plan-" +
                                  str(plan_number) + ".json")
-        plan = write_get_tp(tpsess, "plans", plan_number, plan_file)
-        parse_plan(tpsess, plan, plan_number)
+        plan = write_get_tr(trsess, "plans", plan_number, plan_file)
+        parse_plan(trsess, tpsess, plan, plan_number)
