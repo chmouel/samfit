@@ -12,6 +12,7 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
+import glob
 import gzip
 import json
 import os.path
@@ -22,14 +23,20 @@ import time
 import html2text
 import humanfriendly
 
+import garmin
 import tr
 import zwift
 import tp
+import genindex
+
 
 TR_USERNAME = 'samfit'
 TP_USERNAME = 'chmouel'
+
 ZWIFT_BASE_DIR = os.path.expanduser("~/Documents/Zwift/Workouts")
 BASE_DIR = os.path.expanduser("~/Dropbox/Documents/Fitness/traineroad")
+DOC_DIR = os.path.join(BASE_DIR, "samfitgen", "docs")
+
 DAYS = ["Monday", "Tuesday", "Wednesday",
         "Thursday", "Friday", "Saturday", "Sunday"]
 
@@ -77,8 +84,7 @@ def parse_plan(trsess, tpsess, plan, plan_number):
                                  plan_category,
                                  plan_name)
 
-    plan_textfile = os.path.join(BASE_DIR,
-                                 "docs",
+    plan_textfile = os.path.join(DOC_DIR,
                                  plan_category.replace(" ", "_") +
                                  "-" +
                                  plan_name.replace(" ", "_") + ".md")
@@ -118,7 +124,7 @@ def parse_plan(trsess, tpsess, plan, plan_number):
                     if w["Name"] != "Ramp Test":
                         zfile = os.path.join(base_zwiftdir, w["Name"] + ".zwo")
                         zwift.generate_zwo(wdetail, plan_number, zfile)
-
+                        garmin.generate_garmin_workout(wdetail)
                         tpsess.create_tr_workout(wdetail, TR_EXERCISE_LIBRARY)
 
                 if w['Duration'] != 0:
@@ -152,7 +158,7 @@ if __name__ == '__main__':
         stdout=subprocess.PIPE
     ).communicate()[0].strip()
     trsess = tr.TRconnect(TR_USERNAME, password)
-    trsess.init()
+    # trsess.init()
 
     password = subprocess.Popen(
         ["security", "find-generic-password", "-a",
@@ -160,15 +166,17 @@ if __name__ == '__main__':
         stdout=subprocess.PIPE
     ).communicate()[0].strip()
     tpsess = tp.TPconnect(TP_USERNAME, password)
-    tpsess.init()
+    # tpsess.init()
+
+    os.path.exists("/tmp/curl") and os.remove("/tmp/curl")
+    # [os.remove(x) for x in glob.glob(os.path.join(DOC_DIR, "*.md"))]
 
     # RANGE = [216, 217, 218]
-    import glob
     RANGE = sorted([
         int(re.sub(r"plan-(\d+).json(.gz)?", r"\1", os.path.basename(x)))
         for x in glob.glob(os.path.join(BASE_DIR, "plans", "*.json*"))])
 
-    # RANGE = range(234, 245 + 1)
+    # RANGE = range(210, 212 + 1)
     # RANGE = range(160, 165 + 1)
 
     for plan_number in RANGE:
@@ -176,3 +184,5 @@ if __name__ == '__main__':
                                  str(plan_number) + ".json")
         plan = write_get_tr(trsess, "plans", plan_number, plan_file)
         parse_plan(trsess, tpsess, plan, plan_number)
+
+    genindex.generate_index(DOC_DIR)

@@ -15,12 +15,15 @@
 import fcntl
 import json
 import requests
-import os
+import os.path
 import tempfile
 import time
 
 import html2text
 TP_CYCLING_TYPE_ID = 2
+
+TP_JSON_DIR = "/tmp/tp-json"
+os.path.exists(TP_JSON_DIR) or os.makedirs(TP_JSON_DIR)
 
 
 class TPconnect(object):
@@ -160,16 +163,21 @@ class TPconnect(object):
                        f'exerciselibrary/v1/libraries/{exercise_library}'
                        '/items')
 
+        tpjson = os.path.join(TP_JSON_DIR,
+                              str(workout['Details']['Id']) + ".json")
+        if not os.path.exists(tpjson):
+            jeez = json.dumps(ret)
+            open(tpjson, 'w').write(jeez)
+
+        if not self.session:
+            return
+
         headers = {
             'Content-Type': 'application/json',
             'Referer': 'https://home.trainingpeaks.com/login',
             'Cookie': ('Production_tpAuth=' +
                        self.session.cookies.get('Production_tpAuth'))
         }
-
-        jeez = json.dumps(ret)
-        tpjson = "/tmp/tp/" + str(workout['Details']['Id']) + ".json"
-        open(tpjson, 'w').write(jeez)
 
         s = ['curl', '-s']
         for k, v in headers.items():
