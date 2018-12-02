@@ -33,7 +33,7 @@ import genindex
 TR_USERNAME = 'samfit'
 TP_USERNAME = 'chmouel'
 
-ZWIFT_BASE_DIR = os.path.expanduser("~/Documents/Zwift/Workouts")
+ZWIFT_BASE_DIR = os.path.expanduser("/tmp/zwift")
 BASE_DIR = os.path.expanduser("~/Dropbox/Documents/Fitness/traineroad")
 DOC_DIR = os.path.join(BASE_DIR, "samfitgen", "docs")
 
@@ -122,7 +122,10 @@ def parse_plan(trsess, tpsess, plan, plan_number):
                         trsess, 'workoutdetails', w['Id'], wdetailfile)
 
                     if w["Name"] != "Ramp Test":
-                        zfile = os.path.join(base_zwiftdir, w["Name"] + ".zwo")
+                        zfile = os.path.join(ZWIFT_BASE_DIR,
+                                             w["Name"] + "." +
+                                              str(int(wdetail["Details"]["TSS"])) +
+                                             ".zwo")
                         zwift.generate_zwo(wdetail, plan_number, zfile)
                         garmin.generate_garmin_workout(wdetail)
                         tpsess.create_tr_workout(wdetail, TR_EXERCISE_LIBRARY)
@@ -158,7 +161,7 @@ if __name__ == '__main__':
         stdout=subprocess.PIPE
     ).communicate()[0].strip()
     trsess = tr.TRconnect(TR_USERNAME, password)
-    # trsess.init()
+    trsess.init()
 
     password = subprocess.Popen(
         ["security", "find-generic-password", "-a",
@@ -169,15 +172,10 @@ if __name__ == '__main__':
     # tpsess.init()
 
     os.path.exists("/tmp/curl") and os.remove("/tmp/curl")
-    # [os.remove(x) for x in glob.glob(os.path.join(DOC_DIR, "*.md"))]
 
-    # RANGE = [216, 217, 218]
     RANGE = sorted([
         int(re.sub(r"plan-(\d+).json(.gz)?", r"\1", os.path.basename(x)))
         for x in glob.glob(os.path.join(BASE_DIR, "plans", "*.json*"))])
-
-    # RANGE = range(210, 212 + 1)
-    # RANGE = range(160, 165 + 1)
 
     for plan_number in RANGE:
         plan_file = os.path.join(BASE_DIR, "plans", "plan-" +
