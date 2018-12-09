@@ -25,8 +25,23 @@ TP_CYCLING_TYPE_ID = 2
 TP_JSON_DIR = "/tmp/tp-json"
 os.path.exists(TP_JSON_DIR) or os.makedirs(TP_JSON_DIR)
 
+CATEGORIES = {
+    'Trad VO2max': 1245289,
+    'Low VO2max': 1245289,
+    "Endurance": 1245291,
+    "High-Density": 1245295,
+    "Treshold": 1245296,
+    "Anaerobic Capacity": 1245297,
+    "Tempo": 1245298,
+    "Sweet Spot": 1245300,
+    "Warm-Ups": 1245301,
+    "Free Ride": 1245302,
+    "Others": 1245319,
+}
+
 
 class TPconnect(object):
+    categories = []
     _obligatory_headers = {
         "Referer": "https://home.trainingpeaks.com/login"
     }
@@ -101,11 +116,28 @@ class TPconnect(object):
         self.session = session
 
     def create_tr_workout(self, workout, exercise_library):
+        if not workout['Details']['WorkoutDescription'] or not \
+           workout['Details']['GoalDescription'] or len(workout['Tags']) == 0:
+            return
+
+        category = ''
+        category_text = ''
+        for x in workout['Tags']:
+            if x['Text'] in CATEGORIES.keys():
+                category = x['Text']
+            category_text += "#" + x['Text'].replace(" ", "_") + " "
+        if not category:
+            category = 'Others'
+
+        desc = (workout['Details']['WorkoutDescription'] +
+                "\n\n" + category_text)
+
+        coachComments = workout['Details']['GoalDescription']
         ret = {
-            'description': (
-                html2text.html2text(workout['Details']['WorkoutDescription'])),
+            'description': html2text.html2text(desc),
+            'coachComments': html2text.html2text(coachComments),
             "exerciseId": None,
-            "exerciseLibraryId": exercise_library,
+            "exerciseLibraryId": CATEGORIES[category],
             "workoutTypeId": TP_CYCLING_TYPE_ID,
             "itemName": workout["Details"]["WorkoutName"],
             "tssPlanned": workout["Details"]["TSS"],
