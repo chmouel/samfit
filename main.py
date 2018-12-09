@@ -79,11 +79,6 @@ def parse_plan(trsess, tpsess, plan, plan_number):
        plan['CategoryJson']['Child']['Child']:
         plan_category += "-" + plan['CategoryJson']['Child']['Child']['Name']
 
-    base_zwiftdir = os.path.join(ZWIFT_BASE_DIR,
-                                 'Trainerroad',
-                                 plan_category,
-                                 plan_name)
-
     plan_textfile = os.path.join(DOC_DIR,
                                  plan_category.replace(" ", "_") +
                                  "-" +
@@ -124,7 +119,8 @@ def parse_plan(trsess, tpsess, plan, plan_number):
                     if w["Name"] != "Ramp Test":
                         zfile = os.path.join(ZWIFT_BASE_DIR,
                                              w["Name"] + "." +
-                                              str(int(wdetail["Details"]["TSS"])) +
+                                             str(int(
+                                                 wdetail["Details"]["TSS"])) +
                                              ".zwo")
                         zwift.generate_zwo(wdetail, plan_number, zfile)
                         garmin.generate_garmin_workout(wdetail)
