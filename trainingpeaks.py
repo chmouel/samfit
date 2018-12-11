@@ -113,7 +113,8 @@ class TPSession(object):
 
 def get_session(username, password):
     if not password:
-        password = utils.get_password_from_osx("chmouel", "trainingpeaks")
+        password = utils.get_password_from_osx(config.TP_SECURITY_SERVICE,
+                                               config.TP_SECURITY_ACCOUNT)
     return TPSession(username, password)
 
 
