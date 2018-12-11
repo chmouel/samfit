@@ -221,7 +221,7 @@ def create_calendar_workout_from_library(name=None,
                                          date=None,
                                          testmode=None):
     jeez = {
-        'athleteId': athleteId,
+        'athleteId': athlete_id,
         'exerciseLibraryItemId': exerciseLibraryItemId,
         'workoutDateTime': date.strftime("%Y-%m-%d")
     }
@@ -229,7 +229,7 @@ def create_calendar_workout_from_library(name=None,
         if not testmode:
             tp = get_session()
             r = tp.post(
-                f"/fitness/v1/athletes/{athleteId}/commands/addworkoutfromlibraryitem",
+                f"/fitness/v1/athletes/{athlete_id}/commands/addworkoutfromlibraryitem",
                 jeez)
 
             r.raise_for_status()
