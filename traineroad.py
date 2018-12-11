@@ -141,27 +141,17 @@ def parse_plans(args):
     athlete_id = trainingpeaks.get_userinfo(
         config.TP_USERNAME)['user']['personId']
     plan_name = plan['Name']
-
     ret = {}
     for week in plan['Weeks']:
-        for day in week:
-            if day not in list(calendar.day_name):  # not days
-                if day == 'Name':
-                    k = 'title'
-                    v = f'{plan_name} - {week[day]}'
-                elif day == 'Description':
-                    k = 'description'
-                    v = week[day]
-
-                if cursor_date + datetime.timedelta(days=1) in ret:
-                    ret[cursor_date + datetime.timedelta(days=1)][k] = v
-                else:
-                    ret[cursor_date + datetime.timedelta(days=1)] = {k: v}
-
-                continue
-
+        for day in list(calendar.day_name):
             # Do this here since they are days and before we skip to next ones,
             cursor_date = cursor_date + datetime.timedelta(days=1)
+            if day == 'Monday':
+                ret[cursor_date] = {
+                    'title': f'{week["Name"]} - {plan_name}',
+                    'description': week['Description'],
+                    'coachComment': week['Tips'],
+                }
 
             if not week[day]:  # empty
                 continue
@@ -171,13 +161,15 @@ def parse_plans(args):
             ]
 
     for date in ret:
-        if type(ret[date]) is dict:
+        if type(ret[date]) is dict:  # NOTE: this is a note
             dico = {
                 'athleteId': athlete_id,
                 'workoutDay': date.strftime("%Y-%m-%d"),
                 'title': ret[date]['title'],
                 'workoutTypeValueId': config.TP_OTHER_TYPE_ID,
                 'description': html2text.html2text(ret[date]['description']),
+                'coachComments':
+                html2text.html2text(ret[date]['coachComment']),
                 'completed': False,
                 'publicSettingValue': 0,
                 'personalRecordCount': 0
@@ -190,7 +182,7 @@ def parse_plans(args):
                 print(err)
                 sys.exit(1)
 
-            print(f"Note for {date} created")  # TODO(chmou):
+            print(f"Note: {ret[date]['title']} for {date} created")
             continue
         for workout in ret[date]:
             itemName, itemId = workout
@@ -209,6 +201,8 @@ def parse_plans(args):
                 print(err)
                 sys.exit(1)
 
-            # print(f"Workout {itemName} for {date} created") # TODO(chmou):
+            print(
+                f"Workout: {itemName} for {date.strftime('%a %Y-%b-%d')} created"
+            )  # TODO(chmou):
             if not args.test:
                 time.sleep(2)
