@@ -142,7 +142,7 @@ def get_userinfo(username):
     return (utils.get_or_cache(tp.get, "/users/v3/user", f"user_{username}"))
 
 
-def convert_tr_workout_to_tp(workout):
+def convert_tr2tplib(workout):
     category_text = ''
     if 'Tags' in workout:
         for x in workout['Tags']:
@@ -216,7 +216,7 @@ def convert_tr_workout_to_tp(workout):
 
 
 def create_calendar_workout_from_library(name=None,
-                                         athleteId=None,
+                                         athlete_id=None,
                                          exerciseLibraryItemId=None,
                                          date=None,
                                          testmode=None):

@@ -19,7 +19,6 @@ import dateutil.parser as parser
 import fcntl
 import os
 import requests
-import sys
 import tempfile
 import time
 import html2text
@@ -188,7 +187,7 @@ Hours Per Week: {plan['HoursPerWeek']}
                 coachComments=coachComments,
                 description=description,
                 title=ret[date]['title'],
-                testmode=False)
+                testmode=args.test)
             continue
 
         for workout in ret[date]:
@@ -196,11 +195,10 @@ Hours Per Week: {plan['HoursPerWeek']}
 
             trainingpeaks.create_calendar_workout_from_library(
                 name=itemName,
-                athleteId=athlete_id,
+                athlete_id=athlete_id,
                 exerciseLibraryItemId=int(itemId),
                 date=date,
                 testmode=args.test)
 
-            sys.exit(1)
             if not args.test:
                 time.sleep(2)
