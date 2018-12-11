@@ -15,7 +15,7 @@
 import argparse
 import sys
 
-import trainingpeaks
+import trainingpeaks.library as tplib
 import traineroad
 import config
 
@@ -90,7 +90,7 @@ def main(arguments):
     args = parser.parse_args(arguments)
 
     if args.action == "tp_get_all_workouts":
-        return trainingpeaks.get_all_workouts_library(args)
+        return tplib.get_all_workouts_library(args)
 
     if args.action == "tr_plan_to_tp":
         return traineroad.parse_plans(args)

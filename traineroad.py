@@ -25,7 +25,9 @@ import html2text
 
 import config
 import utils
-import trainingpeaks
+import trainingpeaks.calendar as tpcal
+import trainingpeaks.library as tplib
+import trainingpeaks.user as tpuser
 import exceptions
 
 SESSION = None
@@ -137,16 +139,16 @@ def parse_plans(args):
         cache_path,
     )
     wargs = argparse.Namespace(filter_library_regexp="^TR-")
-    workouts = trainingpeaks.get_all_workouts_library(wargs)
-    athlete_id = trainingpeaks.get_userinfo(
-        args.tp_user, args.tp_password)['user']['personId']
+    workouts = tplib.get_all_workouts_library(wargs)
+    athlete_id = tpuser.get_userinfo(args.tp_user,
+                                     args.tp_password)['user']['personId']
     plan_name = plan['Name']
 
     coachComments = f"""Number of Workout {plan['WorkoutCount']}
 TSS per Week: {plan['TSSPerWeek']}
 Hours Per Week: {plan['HoursPerWeek']}
 """
-    trainingpeaks.create_calendar_other(
+    tpcal.create_calendar_other(
         banner_message="Welcome Note",
         athlete_id=athlete_id,
         date=start_date,
@@ -179,7 +181,7 @@ Hours Per Week: {plan['HoursPerWeek']}
         if type(ret[date]) is dict:  # NOTE: this is a note
             coachComments = html2text.html2text(ret[date]['coachComment'])
             description = html2text.html2text(ret[date]['description'])
-            trainingpeaks.create_calendar_other(
+            tpcal.create_calendar_other(
                 args,
                 banner_message="Note",
                 athlete_id=athlete_id,
@@ -194,7 +196,7 @@ Hours Per Week: {plan['HoursPerWeek']}
         for workout in ret[date]:
             itemName, itemId = workout
 
-            trainingpeaks.create_calendar_workout_from_library(
+            tpcal.create_calendar_workout_from_library(
                 args,
                 name=itemName,
                 athlete_id=athlete_id,

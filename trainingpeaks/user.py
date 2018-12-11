@@ -12,7 +12,10 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
+import trainingpeaks.session as tpsess
+import utils
 
 
-class DateError(Exception):
-    pass
+def get_userinfo(username, password):
+    tp = tpsess.get_session(username, password)
+    return (utils.get_or_cache(tp.get, "/users/v3/user", f"user_{username}"))
