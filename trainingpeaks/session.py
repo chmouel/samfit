@@ -102,10 +102,10 @@ class TPSession(object):
         return self.session.get('https://tpapi.trainingpeaks.com' + url).json()
 
     def post(self, url, jeez):
+        furl = 'https://tpapi.trainingpeaks.com' + url
         if not self.session:
             self.init()
-        return self.session.post(
-            'https://tpapi.trainingpeaks.com' + url, json=jeez)
+        return self.session.post(furl, json=jeez)
 
 
 def get_session(username, password):

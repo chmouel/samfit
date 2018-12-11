@@ -63,6 +63,23 @@ def parse_args():
         help="Rexgexp for Libraries",
     )
 
+    tp_import_tr_workouts = mainparser.add_parser(
+        'tp_import_tr_workouts', help="Import all TR workouts in TP libraries")
+
+    tp_import_tr_workouts.add_argument(
+        '--include-dummies',
+        action='store_true',
+        default=False,
+        help="Do we incly the dummy workout that doesn't have any comments?",
+    )
+
+    tp_import_tr_workouts.add_argument(
+        '--library-name',
+        type=str,
+        default="TrainerRoad",
+        help="The library name where to upload the workout we want",
+    )
+
     tr_plan_to_tp = mainparser.add_parser(
         'tr_plan_to_tp', help="Output TR plan to TP calendar")
 
@@ -72,6 +89,13 @@ def parse_args():
         required=True,
         type=str,
         help="Plan number",
+    )
+
+    tr_plan_to_tp.add_argument(
+        '--library-name',
+        required=True,
+        type=str,
+        help="Library name where we are going to add the stuff",
     )
 
     tr_plan_to_tp.add_argument(
@@ -91,6 +115,9 @@ def main(arguments):
 
     if args.action == "tp_get_all_workouts":
         return tplib.get_all_workouts_library(args)
+
+    if args.action == "tp_import_tr_workouts":
+        return tplib.import_tr_workouts(args)
 
     if args.action == "tr_plan_to_tp":
         return traineroad.parse_plans(args)

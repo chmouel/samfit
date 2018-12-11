@@ -43,7 +43,7 @@ def create_calendar_workout_from_library(
     except requests.exceptions.HTTPError as err:
         print(err)
         sys.exit(1)
-    print(f"Workout: {name} on {date.strftime('%a %Y-%b-%d')} created")
+    print(f"Workout: '{name}' on {date.strftime('%a %Y-%b-%d')} created")
 
 
 def create_calendar_other(args,
@@ -75,4 +75,4 @@ def create_calendar_other(args,
         print(err)
         raise err
     print(
-        f"{banner_message}: {name} on {date.strftime('%a %Y-%b-%d')} created")
+        f"{banner_message}: '{name}' on {date.strftime('%a %Y-%b-%d')} created")

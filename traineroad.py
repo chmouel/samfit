@@ -138,8 +138,8 @@ def parse_plans(args):
         f"/plans/{plan_number}",
         cache_path,
     )
-    wargs = argparse.Namespace(filter_library_regexp="^TR-")
-    workouts = tplib.get_all_workouts_library(wargs)
+    args.filter_library_regexp = f"^{args.library_name}$"
+    workouts = tplib.get_all_workouts_library(args)
     athlete_id = tpuser.get_userinfo(args.tp_user,
                                      args.tp_password)['user']['personId']
     plan_name = plan['Name']
@@ -149,6 +149,7 @@ TSS per Week: {plan['TSSPerWeek']}
 Hours Per Week: {plan['HoursPerWeek']}
 """
     tpcal.create_calendar_other(
+        args,
         banner_message="Welcome Note",
         athlete_id=athlete_id,
         date=start_date,

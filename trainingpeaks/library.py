@@ -12,19 +12,94 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
+import os
+import glob
 import re
-import html2text
+import time
 
+import html2text
+import requests
+
+import traineroad
 import trainingpeaks.session as tpsess
 import utils
 import config
 
 
-def convert_tr2tp(workout):
+def import_tr_workouts(args):
+    RANGE = sorted([
+        int(re.sub(r"(\d+).json(.gz)?", r"\1", os.path.basename(x)))
+        for x in glob.glob(
+            os.path.join(config.BASE_DIR, "workout", "*.json*"))
+    ])
+
+    tr = traineroad.get_session()
+    tp = tpsess.get_session(args.tp_user, args.tp_password)
+    libraries = utils.get_or_cache(tp.get, "/exerciselibrary/v1/libraries",
+                                   f"tp_libraries_{args.tp_user}")
+    libraries = [
+        x['exerciseLibraryId'] for x in libraries
+        if x['libraryName'] == args.library_name
+    ]
+    if not libraries:
+        raise Exception(
+            f"TP library name '{args.library_name}' could not be found")
+    library_id = libraries[0]
+
+    args.filter_library_regexp = f"^{args.library_name}$"
+    workouts = get_all_workouts_library(args)
+
+    for workout_id in RANGE:
+        cache_path = os.path.join(config.BASE_DIR, "workout", str(workout_id))
+
+        workout = utils.get_or_cache(
+            tr.get,
+            f"/workoutdetails/{workout_id}",
+            cache_path,
+        )
+
+        if not workout:
+            print(f"Skipping '{workout_id}', there is an issue loading it")
+            continue
+
+        workout_name = workout["Details"]["WorkoutName"]
+        if workout_name in workouts:
+            print(f"Skipping '{workout_name}' already added")
+            continue
+
+        convert = convert_tr2tp(workout, library_id)
+        if not convert:
+            print(f"Skipping '{workout_name}' not an interesting one")
+            continue
+        add_workout(args, library_id, convert)
+
+        if not args.test:
+            time.sleep(2)
+
+
+def add_workout(args, library_id, dico):
+    try:
+        if not args.test:
+            tp = tpsess.get_session(args.tp_user, args.tp_password)
+            r = tp.post(f"/exerciselibrary/v1/libraries/{library_id}/items",
+                        dico)
+            r.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        from pprint import pprint as p
+        p(dico)
+        raise err
+
+    print(f"Adding '{dico['itemName']}' to '{args.library_name}' library")
+
+
+def convert_tr2tp(workout, library_id):
+    if not workout['Details']['WorkoutDescription'] or not \
+       workout['Details']['GoalDescription'] or len(workout['Tags']) == 0:
+        return {}
+
     category_text = ''
-    if 'Tags' in workout:
-        for x in workout['Tags']:
-            category_text += "#" + x['Text'].replace(" ", "_") + " "
+    for x in workout['Tags']:
+        category_text += "#" + x['Text'].replace(" ", "_") + " "
 
     desc = workout['Details']['WorkoutDescription'] + "\n\n" + category_text
 
@@ -40,6 +115,7 @@ def convert_tr2tp(workout):
         "totalTimePlanned": float(workout["Details"]["Duration"] / 60),
         "distancePlanned": None,
         "velocityPlanned": None,
+        "exerciseLibraryId": library_id,
         "structure": {
             "primaryIntensityTargetOrRange": "target",
             "primaryIntensityMetric": "percentOfFtp",
@@ -101,7 +177,8 @@ def get_all_workouts_library(args):
         x['exerciseLibraryId'] for x in libraries
         if re.match(args.filter_library_regexp, x['libraryName'])
     ]
-
+    if not libraries:
+        raise Exception("Could not find anything in the libraries")
     ret = {}
     for library in libraries:
         ljson = utils.get_or_cache(
