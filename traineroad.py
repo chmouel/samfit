@@ -141,6 +141,41 @@ def parse_plans(args):
     athlete_id = trainingpeaks.get_userinfo(
         config.TP_USERNAME)['user']['personId']
     plan_name = plan['Name']
+
+    dico = {
+        'athleteId':
+        athlete_id,
+        'workoutDay':
+        start_date.strftime("%Y-%m-%d"),
+        'title':
+        f"Welcome to {plan['Name']} TrainerRoad plan",
+        'workoutTypeValueId':
+        config.TP_OTHER_TYPE_ID,
+        'description':
+        html2text.html2text(plan['Description']),
+        'coachComments':
+        f"""Number of Workout {plan['WorkoutCount']}
+TSS per Week: {plan['TSSPerWeek']}
+Hours Per Week: {plan['HoursPerWeek']}
+""",
+        'completed':
+        False,
+        'publicSettingValue':
+        0,
+        'personalRecordCount':
+        0
+    }
+    try:
+        if not args.test:
+            r = trainingpeaks.create_calendar_workout(athlete_id, dico)
+            r.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        print(err)
+        sys.exit(1)
+    print(
+        f"Welcome Note: {plan['Name']} on {start_date.strftime('%a %Y-%b-%d')} created"
+    )
+
     ret = {}
     for week in plan['Weeks']:
         for day in list(calendar.day_name):
@@ -182,7 +217,9 @@ def parse_plans(args):
                 print(err)
                 sys.exit(1)
 
-            print(f"Note: {ret[date]['title']} for {date} created")
+            print(
+                f"Note: {ret[date]['title']} on {date.strftime('%Y-%m-%d')} created"
+            )
             continue
         for workout in ret[date]:
             itemName, itemId = workout
@@ -202,7 +239,7 @@ def parse_plans(args):
                 sys.exit(1)
 
             print(
-                f"Workout: {itemName} for {date.strftime('%a %Y-%b-%d')} created"
+                f"Workout: {itemName} on {date.strftime('%a %Y-%b-%d')} created"
             )  # TODO(chmou):
             if not args.test:
                 time.sleep(2)
