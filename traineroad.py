@@ -25,6 +25,7 @@ import time
 import html2text
 
 import config
+import utils
 import trainingpeaks
 import exceptions
 
@@ -115,7 +116,7 @@ def get_session():
     global SESSION
     if SESSION:
         return SESSION
-    password = config.get_password_from_osx("chmouel", "trainerroad")
+    password = utils.get_password_from_osx("chmouel", "trainerroad")
     SESSION = TRSession(config.TR_USERNAME, password)
     return SESSION
 
@@ -131,7 +132,7 @@ def parse_plans(args):
 
     cursor_date = start_date - datetime.timedelta(days=1)
     tr = get_session()
-    plan = config.get_or_cache(
+    plan = utils.get_or_cache(
         tr.get,
         f"/plans/{plan_number}",
         cache_path,
@@ -142,39 +143,19 @@ def parse_plans(args):
         config.TP_USERNAME)['user']['personId']
     plan_name = plan['Name']
 
-    dico = {
-        'athleteId':
-        athlete_id,
-        'workoutDay':
-        start_date.strftime("%Y-%m-%d"),
-        'title':
-        f"Welcome to {plan['Name']} TrainerRoad plan",
-        'workoutTypeValueId':
-        config.TP_OTHER_TYPE_ID,
-        'description':
-        html2text.html2text(plan['Description']),
-        'coachComments':
-        f"""Number of Workout {plan['WorkoutCount']}
+    coachComments = f"""Number of Workout {plan['WorkoutCount']}
 TSS per Week: {plan['TSSPerWeek']}
 Hours Per Week: {plan['HoursPerWeek']}
-""",
-        'completed':
-        False,
-        'publicSettingValue':
-        0,
-        'personalRecordCount':
-        0
-    }
-    try:
-        if not args.test:
-            r = trainingpeaks.create_calendar_workout(athlete_id, dico)
-            r.raise_for_status()
-    except requests.exceptions.HTTPError as err:
-        print(err)
-        sys.exit(1)
-    print(
-        f"Welcome Note: {plan['Name']} on {start_date.strftime('%a %Y-%b-%d')} created"
-    )
+"""
+    trainingpeaks.create_calendar_other(
+        banner_message="Welcome Note",
+        athlete_id=athlete_id,
+        date=start_date,
+        name=plan_name,
+        coachComments=coachComments,
+        description=html2text.html2text(plan['Description']),
+        title=f"Welcome to {plan['Name']} TrainerRoad plan",
+        testmode=True)  # TODO(chmou):
 
     ret = {}
     for week in plan['Weeks']:
@@ -197,49 +178,29 @@ Hours Per Week: {plan['HoursPerWeek']}
 
     for date in ret:
         if type(ret[date]) is dict:  # NOTE: this is a note
-            dico = {
-                'athleteId': athlete_id,
-                'workoutDay': date.strftime("%Y-%m-%d"),
-                'title': ret[date]['title'],
-                'workoutTypeValueId': config.TP_OTHER_TYPE_ID,
-                'description': html2text.html2text(ret[date]['description']),
-                'coachComments':
-                html2text.html2text(ret[date]['coachComment']),
-                'completed': False,
-                'publicSettingValue': 0,
-                'personalRecordCount': 0
-            }
-            try:
-                if not args.test:
-                    r = trainingpeaks.create_calendar_workout(athlete_id, dico)
-                    r.raise_for_status()
-            except requests.exceptions.HTTPError as err:
-                print(err)
-                sys.exit(1)
-
-            print(
-                f"Note: {ret[date]['title']} on {date.strftime('%Y-%m-%d')} created"
-            )
+            coachComments = html2text.html2text(ret[date]['coachComment'])
+            description = html2text.html2text(ret[date]['description'])
+            trainingpeaks.create_calendar_other(
+                banner_message="Note",
+                athlete_id=athlete_id,
+                date=date,
+                name=ret[date]['title'],
+                coachComments=coachComments,
+                description=description,
+                title=ret[date]['title'],
+                testmode=False)
             continue
+
         for workout in ret[date]:
             itemName, itemId = workout
-            dico = {
-                'athleteId': athlete_id,
-                'exerciseLibraryItemId': int(itemId),
-                'workoutDateTime': date.strftime("%Y-%m-%d")
-            }
-            # TODO: check if not already there
-            try:
-                if not args.test:
-                    r = trainingpeaks.create_calendar_workout_from_library(
-                        athlete_id, dico)
-                    r.raise_for_status()
-            except requests.exceptions.HTTPError as err:
-                print(err)
-                sys.exit(1)
 
-            print(
-                f"Workout: {itemName} on {date.strftime('%a %Y-%b-%d')} created"
-            )  # TODO(chmou):
+            trainingpeaks.create_calendar_workout_from_library(
+                name=itemName,
+                athleteId=athlete_id,
+                exerciseLibraryItemId=int(itemId),
+                date=date,
+                testmode=args.test)
+
+            sys.exit(1)
             if not args.test:
                 time.sleep(2)
