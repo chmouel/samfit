@@ -139,7 +139,7 @@ def parse_plans(args):
     wargs = argparse.Namespace(filter_library_regexp="^TR-")
     workouts = trainingpeaks.get_all_workouts_library(wargs)
     athlete_id = trainingpeaks.get_userinfo(
-        config.TP_USERNAME)['user']['personId']
+        args.tp_user, args.tp_password)['user']['personId']
     plan_name = plan['Name']
 
     coachComments = f"""Number of Workout {plan['WorkoutCount']}
@@ -180,6 +180,7 @@ Hours Per Week: {plan['HoursPerWeek']}
             coachComments = html2text.html2text(ret[date]['coachComment'])
             description = html2text.html2text(ret[date]['description'])
             trainingpeaks.create_calendar_other(
+                args,
                 banner_message="Note",
                 athlete_id=athlete_id,
                 date=date,
@@ -194,6 +195,7 @@ Hours Per Week: {plan['HoursPerWeek']}
             itemName, itemId = workout
 
             trainingpeaks.create_calendar_workout_from_library(
+                args,
                 name=itemName,
                 athlete_id=athlete_id,
                 exerciseLibraryItemId=int(itemId),

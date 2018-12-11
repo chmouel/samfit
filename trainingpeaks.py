@@ -111,15 +111,16 @@ class TPSession(object):
             'https://tpapi.trainingpeaks.com' + url, json=jeez)
 
 
-def get_session():
-    password = utils.get_password_from_osx("chmouel", "trainingpeaks")
-    return TPSession(config.TP_USERNAME, password)
+def get_session(username, password):
+    if not password:
+        password = utils.get_password_from_osx("chmouel", "trainingpeaks")
+    return TPSession(username, password)
 
 
 def get_all_workouts_library(args):
-    tp = get_session()
+    tp = get_session(args.tp_user, args.tp_password)
     libraries = utils.get_or_cache(tp.get, "/exerciselibrary/v1/libraries",
-                                   "tp_libraries")
+                                   f"tp_libraries_{args.tp_user}")
     libraries = [
         x['exerciseLibraryId'] for x in libraries
         if re.match(args.filter_library_regexp, x['libraryName'])
@@ -137,8 +138,8 @@ def get_all_workouts_library(args):
     return ret
 
 
-def get_userinfo(username):
-    tp = get_session()
+def get_userinfo(username, password):
+    tp = get_session(username, password)
     return (utils.get_or_cache(tp.get, "/users/v3/user", f"user_{username}"))
 
 
@@ -215,11 +216,14 @@ def convert_tr2tplib(workout):
     return ret
 
 
-def create_calendar_workout_from_library(name=None,
-                                         athlete_id=None,
-                                         exerciseLibraryItemId=None,
-                                         date=None,
-                                         testmode=None):
+def create_calendar_workout_from_library(
+        args,
+        name=None,
+        athlete_id=None,
+        exerciseLibraryItemId=None,
+        date=None,
+        testmode=None,
+):
     jeez = {
         'athleteId': athlete_id,
         'exerciseLibraryItemId': exerciseLibraryItemId,
@@ -227,7 +231,7 @@ def create_calendar_workout_from_library(name=None,
     }
     try:
         if not testmode:
-            tp = get_session()
+            tp = get_session(args.tp_user, args.tp_password)
             r = tp.post(
                 f"/fitness/v1/athletes/{athlete_id}/commands/addworkoutfromlibraryitem",
                 jeez)
@@ -239,7 +243,8 @@ def create_calendar_workout_from_library(name=None,
     print(f"Workout: {name} on {date.strftime('%a %Y-%b-%d')} created")
 
 
-def create_calendar_other(banner_message=None,
+def create_calendar_other(args,
+                          banner_message=None,
                           title=None,
                           description=None,
                           athlete_id=None,
@@ -260,7 +265,7 @@ def create_calendar_other(banner_message=None,
     }
     try:
         if not testmode:
-            tp = get_session()
+            tp = get_session(args.tp_user, args.tp_password)
             r = tp.post(f"/fitness/v3/athletes/{athlete_id}/workouts", dico)
             r.raise_for_status()
     except requests.exceptions.HTTPError as err:

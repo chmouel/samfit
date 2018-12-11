@@ -17,12 +17,32 @@ import sys
 
 import trainingpeaks
 import traineroad
+import config
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description='SamFIiiT.')
 
     mainparser = parser.add_subparsers(help='action to run', dest='action')
+    parser.add_argument(
+        '--tp-user',
+        type=str,
+        default=config.TP_USERNAME,
+        help="Trainingpeaks username",
+    )
+    parser.add_argument(
+        '--tp-password',
+        type=str,
+        help="Trainingpeaks password",
+    )
+
+    parser.add_argument(
+        '--tr-user',
+        type=str,
+        default=config.TR_USERNAME,
+        help="Trainerroad username",
+    )
+
     parser.add_argument(
         '-t',
         '--test',
