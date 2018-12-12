@@ -20,7 +20,7 @@ import gzip
 import config
 
 
-def get_password_from_osx(account, service):
+def get_password_from_osx(service, account):
     return subprocess.Popen([
         "security", "find-generic-password", "-a", account, "-s", service, "-w"
     ],
