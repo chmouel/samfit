@@ -64,6 +64,22 @@ def parse_args():
         help="Rexgexp for Libraries",
     )
 
+    tp_import_plan = mainparser.add_parser(
+        'tp_import_plan',
+        help="Import our own generated plan starting from a date.")
+
+    tp_import_plan.add_argument(
+        dest="plan_file",
+        type=str,
+        help="Plan file",
+    )
+
+    tp_import_plan.add_argument(
+        dest="start_date",
+        type=str,
+        help="Start date",
+    )
+
     tp_get_calendar_workouts = mainparser.add_parser(
         'tp_get_calendar_workouts',
         help="Get all TrainingPeaks workouts from calendar dates and "
@@ -148,6 +164,12 @@ def main(arguments):
 
     if args.action == "tp_get_calendar_workouts":
         return tpcal.get_calendar_workouts(args)
+
+    if args.action == "tp_import_plan":
+        return tpcal.import_plan(args)
+
+    if args.action == "tp_add_cadence_to_library":
+        return tplib.add_cadence_plan(args)
 
 
 if __name__ == '__main__':

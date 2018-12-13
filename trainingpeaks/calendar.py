@@ -12,18 +12,38 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
+import gzip
+import time
 import os
 import json
 import calendar
 import sys
 
+import datetime
 import requests
 import dateutil.parser as dtparser
 
 import config
+import exceptions
 import utils
 import trainingpeaks.session as tpsess
 import trainingpeaks.user as tpuser
+
+
+def create_calendar_workout(args, workout=None, date=None):
+    athlete_id = workout['athleteId']
+    try:
+        if not args.test:
+            tp = tpsess.get_session(args.tp_user, args.tp_password)
+            r = tp.post(f"/fitness/v3/athletes/{athlete_id}/workouts", workout)
+
+            r.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        print(err)
+        sys.exit(1)
+    print(
+        f"Workout: '{workout['title']}' on {date.strftime('%a %Y-%b-%d')} created"
+    )
 
 
 def create_calendar_workout_from_library(
@@ -94,8 +114,9 @@ def build_workout(current, workout, workoutdate):
 
     # Those should not be imported back
     for x in [
-            "workoutId", "athleteId", "workoutDay", "startTimePlanned",
-            "sharedWorkoutInformationKey", "sharedWorkoutInformationExpireKey"
+            "lastModifiedDate", "workoutId", "athleteId", "workoutDay",
+            "startTimePlanned", "sharedWorkoutInformationKey",
+            "sharedWorkoutInformationExpireKey"
     ]:
         del workout[x]
 
@@ -163,3 +184,55 @@ def get_calendar_workouts(args):
     print(f"Wrote: {output_file}\nWeeks: {len(weeks)}\n"
           f"Total number of Workouts: {total}")
     json.dump(weeks, open(output_file, 'w'))
+
+
+def import_plan(args):
+    athlete_id = tpuser.get_userinfo(args.tp_user,
+                                     args.tp_password)['user']['personId']
+    plan_file = args.plan_file
+    if not args.plan_file.startswith("/"):
+        plan_file = os.path.join(config.BASE_DIR, "plans",
+                                 f"{args.plan_file}.json")
+    if os.path.exists(plan_file + ".gz"):
+        plan_file = plan_file + ".gz"
+
+    if plan_file.endswith(".gz") or os.path.exists(plan_file + ".gz"):
+        fp = gzip.open(plan_file)
+    else:
+        fp = open(plan_file)
+
+    plan = json.load(fp)
+    start_date = dtparser.parse(args.start_date)
+    if start_date.weekday() != 0:
+        raise exceptions.DateError(
+            "%s don't start on a monday" % (start_date.today()))
+
+    cursor_date = start_date - datetime.timedelta(days=1)
+    cursor_date = cursor_date.replace(hour=7, minute=0)
+    ret = {}
+    for week in plan:
+        for day in list(calendar.day_name):
+            # Do this here since they are days and before we skip to next ones,
+            cursor_date = cursor_date + datetime.timedelta(days=1)
+            cursor_date = cursor_date.replace(hour=7, minute=0)
+            if day not in week["Workouts"] \
+               or not week["Workouts"][day]:  # empty
+                continue
+
+            dayp = []
+            for workout in week["Workouts"][day]:
+                workout["athleteId"] = athlete_id
+                workout["lastModifiedDate"] = datetime.datetime.now().strftime(
+                    "%Y-%m-%d")
+                workout["workoutDay"] = cursor_date.strftime("%Y-%m-%d")
+                workout["startTimePlanned"] = cursor_date.strftime(
+                    "%Y-%m-%dT%H:%m")
+                dayp.append(workout)
+                if workout['workoutTypeValueId'] != config.TP_OTHER_TYPE_ID:
+                    cursor_date = cursor_date + datetime.timedelta(hours=1)
+            ret[cursor_date] = dayp
+
+    for day in ret:
+        for workout in ret[day]:
+            create_calendar_workout(args, workout, day)
+            time.sleep(2)
