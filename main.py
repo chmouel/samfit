@@ -16,6 +16,7 @@ import argparse
 import sys
 
 import trainingpeaks.library as tplib
+import trainingpeaks.calendar as tpcal
 import traineroad
 import config
 
@@ -61,6 +62,29 @@ def parse_args():
         default=r"^TR-",
         type=str,
         help="Rexgexp for Libraries",
+    )
+
+    tp_get_calendar_workouts = mainparser.add_parser(
+        'tp_get_calendar_workouts',
+        help="Get all TrainingPeaks workouts from calendar dates and "
+        " output it nicely to a file.")
+
+    tp_get_calendar_workouts.add_argument(
+        dest="from_date",
+        type=str,
+        help="From date",
+    )
+
+    tp_get_calendar_workouts.add_argument(
+        dest="to_date",
+        type=str,
+        help="To date",
+    )
+
+    tp_get_calendar_workouts.add_argument(
+        dest="output_file",
+        type=str,
+        help="Output file",
     )
 
     tp_import_tr_workouts = mainparser.add_parser(
@@ -121,6 +145,9 @@ def main(arguments):
 
     if args.action == "tr_plan_to_tp":
         return traineroad.parse_plans(args)
+
+    if args.action == "tp_get_calendar_workouts":
+        return tpcal.get_calendar_workouts(args)
 
 
 if __name__ == '__main__':
