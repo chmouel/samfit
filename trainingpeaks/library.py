@@ -169,7 +169,7 @@ def convert_tr2tp(workout, library_id):
     return ret
 
 
-def get_all_workouts_library(args):
+def get_all_workouts_library(args, full=False):
     tp = tpsess.get_session(args.tp_user, args.tp_password)
     libraries = utils.get_or_cache(tp.get, "/exerciselibrary/v1/libraries",
                                    f"tp_libraries_{args.tp_user}")
@@ -177,6 +177,7 @@ def get_all_workouts_library(args):
         x['exerciseLibraryId'] for x in libraries
         if re.match(args.filter_library_regexp, x['libraryName'])
     ]
+
     if not libraries:
         raise Exception("Could not find anything in the libraries")
     ret = {}
@@ -185,7 +186,59 @@ def get_all_workouts_library(args):
             tp.get, f'/exerciselibrary/v1/libraries/{library}/items',
             f"tp_library_{library}")
         for exercise in ljson:
-            ret[exercise['itemName']] = (exercise['itemName'],
-                                         exercise['exerciseLibraryItemId'])
+            if full:
+                ret[exercise['itemName']] = exercise
+            else:
+                ret[exercise['itemName']] = (exercise['itemName'],
+                                             exercise['exerciseLibraryItemId'])
 
     return ret
+
+
+# curl 'https://tpapi.trainingpeaks.com/exerciselibrary/v1/libraries/1245297/items/3634034' -X PUT -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:64.0) Gecko/20100101 Firefox/64.0' -H 'Accept: application/json, text/javascript, */*; q=0.01' -H 'Accept-Language: en,en-US;q=0.8,fr;q=0.5,fr-FR;q=0.3' --compressed -H 'Referer: https://app.trainingpeaks.com/' -H 'Content-Type: application/json' -H 'Origin: https://app.trainingpeaks.com' -H 'DNT: 1' -H 'Connection: keep-alive' -H 'Cookie: ajs_user_id=null; ajs_group_id=null; ajs_anonymous_id=%22150482dc-faef-4f65-88bd-5c3c41145bb7%22; Production_tpAuth=PWMNXmv09kK0Q7eirxYP88HyuD9rqLASz27ZbxxA7j0AU2CwTrMCC288XrV1c2oezPEoZQnEh_ZvCzyE3UnF3T1yy8FGWlnBXD75x5-mCUTKLbYHXKlNBOw5_8zvTfx8vWY2rtJ8yDH83lZmuqIZAYGF-nfQcpZRCkmC_-dQdsnG-FMEiLZTnrsZDGxC8uxAsUzot1MZgBvoZbR2cKEFrDWFzZvDB2mZJE2PRh-eZKgHH9g1Ss0O7ymqs_X9f9YiuFHGpr5DUfDrDnCF9ApDkYFpnbruGvLp2-px4VTEuZWcuPata_Wb0mkmoRffaLkHaUm6KI523oVZyEjoRj4q8BSRYrFJH73CVjWvMR0-oRamAugf5rI7drgE4E1rgYGkEZsD8IX5A1XSgOUIK8h2KxrrUeyp4wQaUGlbU_y569L1oLDoT4N5iC9lcJTIZflehpq3GjVPCthAWk6c-10tVc9dP5xgVqura5AupCC85raJgRpR9uR-r972b71dnkmM9uwd69nc2nIHHovpGIb8No5n-JgRfBl_JsTZ7wrgzU4I4rIBE7oKnzwWSstkTjCVKS2IXf-uN--pSs7OWoxiwv1wcyanwnGQ5mS3L4ytIQJwGfp7oVTWco-11bLNbZ3K5CPOehLEHXNO0KCzcsan20Vw4XItFkuJWne-XapVQvI7K-DA0-uCQmPaFZu_XFqVWU6_lGrk6nXZQPxuBmUA7FzVuF7tPI06nkNpYBIF0y9Xkm-yVDSjPG-GZfXmTxQYDG1WLFwYyEnrWQzbkGfyJ9TTDQGnA9v6q4W0UNPvu2MonEHK1jyqk-E6alxCCRvMeeDCIrobu_iLOTd41Gb9TBKxvqOc1Dav0GKoKbQFmEEq6yN88FhQSDueqGD2IpfXlrpdCEYx8tcBQqzO0jS5zHjwM58BDTy9BeLGgUEiJM-_Vl1hL3Pkv7kcvSyef2IvL90FNWdixlQZbpK_9i-LvC2f1xEvcs8N-CrDseQDtt4firHIG-GeSBks7Lzy1uHgUTI2355s10yL1ch6ECVaUSBAJZeXvADDOPmrAiFTNrVLprddw3Y-azX81bwSC2G6Nb9stcPLgoVamLU7NQuvwvyUIhzqXkt6xYokWxijcViXMFCxK9kSdtubpCXdc4mIy2YLMwxhYtd9PEdVvlh995BRi2r60xfysaEjXwc_nogS_PJKP4RrgEmBgwLbPs2gQHtleagtIz6OIh5bZUx33pSTw8MNAZwGmIH7iPUcDEzdUiZ4-mGoKB7W2Ad2ACF8bhLjiupqU48M2GhCFWb3qIsDcarjMtQG4W2sgGSyJaPnl-TWC3UxCZJx2XKoWlByMmMsWYjypzDPhhinnuK7imu8FPYpzQiHAzsUlWunfhY_GlQRw5kJ0rqHlS2oFyu3GnMECP1LhoN1wbSGksvUb1nyVSuGzbc0YkFbc5Uq3rgrqZ8VBCZl0sQxzVyVMGzdsoAZ52kXK-Uhbe0OiwgOPhiC_W9waBDgpuqld1DJoZF56t1T3XFecqlLWn8nWZ9LFA7dXqCzS8YqE7MmTtP-5L7VL5ONBUKMvWqwE0PhcKb1dJRvo0Bth7YeFpxWBzdj7Z-XrFlApfJ_d1lXkBO7uHILmvQ2UZJjVCz4x1_qqRjcQ9QXUTNNBg7qxuqC_Ev5_u_DYuI12E1dv6CLVEdHMVHlHeTtgQV_uiUiO4onEOADsvG40Lx7jqDHt8zsjVpXBKdfoRBNqWNL2zOKtNGZJyeCpBj5ErMG-uomGLTdDImpWAj7_rTXQEHD31pcmpJvIOleuE2vGUsvXaXGE9DCcXFqgs0nG-C1hR7xrApUP2GTbu745AwTJBybzF8vF_Y6Bt88OUPTqtCuFVU4qFkR3RBkUm4Y10Q0UCxPrBdo-cqqUGhDbDTS6pQRdoTyUblJ31qK0jjBK23EAF-iQku7AQ2' -H 'Pragma: no-cache' -H 'Cache-Control: no-cache' -H 'TE: Trailers'
+
+
+def update_workout(args, library_id, item_id, dico):
+    try:
+        if not args.test:
+            tp = tpsess.get_session(args.tp_user, args.tp_password)
+            r = tp.put(
+                f"/exerciselibrary/v1/libraries/{library_id}/items/{item_id}",
+                dico)
+            r.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        from pprint import pprint as p
+        p(dico)
+        raise err
+
+    print(f"Updated '{dico['itemName']}' to '{library_id}' library")
+
+
+def add_cadence_plan(args):
+    workouts = get_all_workouts_library(args, full=True)
+
+    for name in workouts:
+        w = workouts[name]
+        steps = []
+        for step in w['structure']['structure']:
+            for sub in step['steps']:
+                if sub['intensityClass'] == 'active' and \
+                   len(sub['targets']) == 2:
+                    sub['targets'] = [sub['targets'][0]]
+
+                if sub['intensityClass'] == 'active' and \
+                   len(sub['targets']) == 1:
+                    step['steps'][0]['targets'].append({
+                        "maxValue":
+                        config.ACTIVE_CADENCE_MAX,
+                        "minValue":
+                        config.ACTIVE_CADENCE_MIN,
+                        "unit":
+                        "roundOrStridePerMinute",
+                    })
+            steps.append(step)
+        w['structure']['structure'] = steps
+        libraryid = w['exerciseLibraryId']
+        itemid = w['exerciseLibraryItemId']
+        update_workout(args, libraryid, itemid, w)
+        time.sleep(3)

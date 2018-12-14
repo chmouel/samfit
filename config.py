@@ -20,6 +20,9 @@ BASE_DIR = os.path.expanduser("~/Dropbox/Documents/Fitness/traineroad")
 TP_CYCLING_TYPE_ID = 2
 TP_OTHER_TYPE_ID = 100
 
+ACTIVE_CADENCE_MIN = 95
+ACTIVE_CADENCE_MAX = 105
+
 # In osx keychain if we don't want to pass the password in clears
 TP_SECURITY_ACCOUNT = 'chmouel'
 TP_SECURITY_SERVICE = 'trainingpeaks'

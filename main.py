@@ -52,6 +52,18 @@ def parse_args():
         help="Test mode",
     )
 
+    tp_add_cadence_to_library = mainparser.add_parser(
+        'tp_add_cadence_to_library',
+        help="Add a cadence to all library workouts")
+
+    tp_add_cadence_to_library.add_argument(
+        '-l',
+        '--filter-library-regexp',
+        default=r"^TR-",
+        type=str,
+        help="Rexgexp for Libraries",
+    )
+
     tp_get_all_workouts = mainparser.add_parser(
         'tp_get_all_workouts',
         help="Get all TrainingPeaks workouts id to a JSON file")
