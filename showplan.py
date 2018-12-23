@@ -47,7 +47,7 @@ def show_workout(workout):
                 s = step['intensityClass'].title()
             else:
                 s = step['intensityClass']
-
+            ret += f"{s} "
             ret += utils.secondsToText(step['length']['value']) + " "
             median = (step['targets'][0]['minValue'] +
                       step['targets'][0]['maxValue']) / 2
