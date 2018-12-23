@@ -29,7 +29,15 @@ def show_workout(workout):
     emoji = '🚴'
     if config.TP_TYPE[workout['workoutTypeValueId']] == 'Running':
         emoji = '🏃'
-    ret += f"* {emoji} - {workout['title']} \n"
+    ret += f"* {emoji} "
+
+    if len(workout['structure']['structure']) > 1:
+        total_time = utils.secondsToText(
+            workout['structure']['structure'][-1]['end'])
+        ret += f"{total_time} "
+
+    ret += f"{workout['title']}\n"
+
     for structure in workout['structure']['structure']:
         ret += "  - "
         if structure['type'] == 'repetition' and  \
@@ -106,7 +114,7 @@ def show_plan(args):
                 else:
                     tt = config.TP_TYPE[int(w['workoutTypeValueId'])]
                     emoji = ''
-                    if tt == 'Swimming':
+                    if tt == 'Swim':
                         emoji = '🏊‍'
                     elif tt == 'Strength':
                         emoji = '🏋️‍'
