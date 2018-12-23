@@ -189,19 +189,10 @@ def get_calendar_workouts(args):
 def import_plan(args):
     athlete_id = tpuser.get_userinfo(args.tp_user,
                                      args.tp_password)['user']['personId']
-    plan_file = args.plan_file
-    if not args.plan_file.startswith("/"):
-        plan_file = os.path.join(config.BASE_DIR, "plans",
-                                 f"{args.plan_file}.json")
-    if os.path.exists(plan_file + ".gz"):
-        plan_file = plan_file + ".gz"
+    plan = utils.get_filej(args.plan_file)
+    if not plan:
+        raise Exception(f"Cannot find plan: {args.plan_file}")
 
-    if plan_file.endswith(".gz") or os.path.exists(plan_file + ".gz"):
-        fp = gzip.open(plan_file)
-    else:
-        fp = open(plan_file)
-
-    plan = json.load(fp)
     start_date = dtparser.parse(args.start_date)
     if start_date.weekday() != 0:
         raise exceptions.DateError(

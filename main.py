@@ -19,6 +19,7 @@ import trainingpeaks.library as tplib
 import trainingpeaks.calendar as tpcal
 import traineroad
 import config
+import showplan
 
 
 def parse_args():
@@ -74,6 +75,13 @@ def parse_args():
         default=r"^TR-",
         type=str,
         help="Rexgexp for Libraries",
+    )
+
+    show_plan = mainparser.add_parser('show_plan', help="Show plan.")
+    show_plan.add_argument(
+        dest="plan_file",
+        type=str,
+        help="Plan file",
     )
 
     tp_import_plan = mainparser.add_parser(
@@ -182,6 +190,9 @@ def main(arguments):
 
     if args.action == "tp_add_cadence_to_library":
         return tplib.add_cadence_plan(args)
+
+    if args.action == "show_plan":
+        return showplan.show_plan(args)
 
 
 if __name__ == '__main__':

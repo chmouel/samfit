@@ -42,3 +42,26 @@ def get_or_cache(getter, url, obj):
         jeez = getter(url)
         json.dump(jeez, open(fpath, 'w'))
         return jeez
+
+
+def get_filej(fff):
+    pf = None
+    if not fff.startswith("/"):
+        pf = os.path.join(config.BASE_DIR, "plans", f"{fff}.json")
+    if os.path.exists(pf + ".gz"):
+        pf = pf + ".gz"
+
+    if not pf:
+        return {}
+
+    if pf.endswith(".gz") or os.path.exists(pf + ".gz"):
+        fp = gzip.open(pf)
+    else:
+        fp = open(pf)
+
+    return json.load(fp)
+
+
+def ppt(ss, ppt='-'):
+    print(ss)
+    print(ppt * len(ss))
