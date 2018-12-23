@@ -1,7 +1,10 @@
+import calendar
 import datetime
 
 import config
 import utils
+
+import dateutil.parser as dtparser
 
 
 def conver_pace_to_seconds(pace):
@@ -96,12 +99,27 @@ def show_workout(args, workout):
 
 
 def show_plan(args):
+    ret = ''
+    cursor_date = dtparser.parse(args.start_date)
+    cursor_date = cursor_date - datetime.timedelta(days=1)
+
     plan = utils.get_filej(args.plan_file)
     if not plan:
         raise Exception(f"Cannot find plan: {args.plan_file}")
     for week in plan:
-        utils.ppt(f"\nWeek: {week['Week']}", ppt='=')
-        for day in week['Workouts']:
+        if not args.today:
+            ret += utils.ppt(f"\nWeek: {week['Week']}", ppt='=')
+        for day in list(calendar.day_name):
+            cursor_date = cursor_date + datetime.timedelta(days=1)
+
+            if args.today and (cursor_date.strftime("%Y%m%d") !=
+                               datetime.datetime.now().strftime("%Y%m%d")):
+                continue
+
+            if day not in week["Workouts"] \
+               or not week["Workouts"][day]:  # empty
+                continue
+
             daysw = week['Workouts'][day]
 
             tssPlanned = 0
@@ -115,13 +133,13 @@ def show_plan(args):
                     numberOfWorkouts += 1
 
             if numberOfWorkouts == 0:
-                s = f"\n{day}: Rest Day 😴"
-                ll = len(s)
-                s = utils.colourText(s, 'blue')
-                utils.ppt(s, ll=ll)
+                s = f"\n{cursor_date.strftime('%A %d %b')}: Rest Day 😴"
+                color = 'cyan_italic'
             else:
-                s = f"\n{day}: {numberOfWorkouts} Workout"
-                utils.ppt(s)
+                s = f"\n{cursor_date.strftime('%A %d %b')}: {numberOfWorkouts} Workout"
+                color = "cyan_surligned"
+            s = utils.colourText(s, color)
+            ret += s + "\n"
 
             for w in daysw:
                 if w['workoutTypeValueId'] in (config.TP_NOTE_TYPE_ID,
@@ -131,7 +149,7 @@ def show_plan(args):
 
                 pw = show_workout(args, w)
                 if pw:
-                    print(pw)
+                    ret += "\n" + pw + "\n"
                 else:
                     tt = config.TP_TYPE[int(w['workoutTypeValueId'])]
                     emoji = ''
@@ -140,4 +158,6 @@ def show_plan(args):
                     elif tt == 'Strength':
                         emoji = '🏋️‍'
 
-                    print(f"{tt}: {w['title']} {emoji}")
+                    ret += f"{tt}: {w['title']} {emoji}\n"
+
+    print(ret)

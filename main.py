@@ -13,6 +13,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 import argparse
+import datetime
 import sys
 
 import trainingpeaks.library as tplib
@@ -96,6 +97,20 @@ def parse_args():
         dest="plan_file",
         type=str,
         help="Plan file",
+    )
+
+    show_plan.add_argument(
+        '--start-date',
+        type=str,
+        default=str(datetime.datetime.now()),
+        help="Start Date",
+    )
+
+    show_plan.add_argument(
+        '--today',
+        action='store_true',
+        default=False,
+        help="Show only today",
     )
 
     tp_import_plan = mainparser.add_parser(

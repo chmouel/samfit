@@ -66,8 +66,9 @@ def get_filej(fff):
 def ppt(ss, ppt='-', ll=None):
     if not ll:
         ll = len(ss)
-    print(ss)
-    print(ppt * ll)
+    ret = ss + "\n"
+    ret += ppt * ll + "\n"
+    return ret
 
 
 def secondsToText(secs):
@@ -92,8 +93,11 @@ def colourText(text, color):
         'blue': "\033[1;34m",
         'blue_reverse': "\033[1;44m",
         'cyan': "\033[1;36m",
+        'cyan_surligned': "\033[4;36m",
+        'cyan_italic': "\033[3;37m",
         'green': "\033[1;32m",
         'grey': "\033[1;30m",
+        'magenta_surligned': "\033[4;35m",
         'magenta': "\033[1;35m",
         'white': "\033[1;47m",
         'white_italic': "\033[1;3m",
