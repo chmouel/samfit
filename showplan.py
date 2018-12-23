@@ -39,14 +39,6 @@ def show_workout(workout):
         if len(structure['steps']) > 1:
             ret += "("
         for step in structure['steps']:
-            mm = round(step['length']['value'] / 60)
-            if mm == 0:
-                ret += str(step['length']['value']) + " seconds "
-            else:
-                ret += str(mm) + " minute"
-                if mm > 1:
-                    ret += "s"
-                ret += " "
             if step['intensityClass'] == "warmUp":
                 s = "Warm Up"
             elif step['intensityClass'] == "coolDown":
@@ -55,6 +47,15 @@ def show_workout(workout):
                 s = step['intensityClass'].title()
             else:
                 s = step['intensityClass']
+
+            mm = round(step['length']['value'] / 60)
+            if mm == 0:
+                ret += str(step['length']['value']) + " seconds "
+            else:
+                ret += str(mm) + " minute"
+                if mm > 1:
+                    ret += "s"
+                ret += " "
             ret += s + " "
             median = (step['targets'][0]['minValue'] +
                       step['targets'][0]['maxValue']) / 2
