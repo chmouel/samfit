@@ -42,30 +42,48 @@ def show_workout(workout):
         ret += "  - "
         if structure['type'] == 'repetition' and  \
            structure['length']['value'] != 1:
-            ret += f"{structure['length']['value']} * "
+            s = utils.colourText(structure['length']['value'], 'magenta')
+            ret += f"{s} * "
 
         if len(structure['steps']) > 1:
             ret += "("
         for step in structure['steps']:
-            if step['intensityClass'] == "warmUp":
-                s = "Warm Up"
-            elif step['intensityClass'] == "coolDown":
-                s = "Warm Down"
-            elif step['intensityClass'] in ("active", "rest"):
-                s = step['intensityClass'].title()
-            else:
-                s = step['intensityClass']
-            ret += f"{s} "
-            ret += utils.secondsToText(step['length']['value']) + " "
+            st = ''
             median = (step['targets'][0]['minValue'] +
                       step['targets'][0]['maxValue']) / 2
+            color = ''
+            if step['intensityClass'] == "warmUp":
+                s = "Warm Up"
+                color = 'white_italic'
+            elif step['intensityClass'] == "coolDown":
+                s = "Warm Down"
+                color = 'white_italic'
+            elif step['intensityClass'] == "rest":
+                s = "Rest"
+                color = 'cyan'
+            elif step['intensityClass'] == "active":
+                s = step['intensityClass'].title()
+
+                color = 'green'
+                if median > 80:
+                    color = 'blue'
+                if median > 90:
+                    color = 'yellow'
+                if median > 100:
+                    color = 'red'
+            else:
+                s = step['intensityClass']
+            st += f"{s} "
+            st += utils.secondsToText(step['length']['value']) + " "
             pace = convertTreshold(workout['workoutTypeValueId'],
                                    round(median))
-            ret += f"{pace}"
+            st += f"{pace}"
             if config.TP_TYPE[workout['workoutTypeValueId']] == 'Cycling':
-                ret += f"W‍"
+                st += f"W‍"
 
-            ret += " [" + str(round(median)) + "%]"
+            st += " [" + str(round(median)) + "%]"
+
+            ret += utils.colourText(st, color)
 
             if structure['steps'][-1] != step:
                 ret += " / "
@@ -97,7 +115,9 @@ def show_plan(args):
 
             if numberOfWorkouts == 0:
                 s = f"\n{day}: Rest Day 😴"
-                utils.ppt(s)
+                ll = len(s)
+                s = utils.colourText(s, 'blue')
+                utils.ppt(s, ll=ll)
             else:
                 s = f"\n{day}: {numberOfWorkouts} Workouts, {round(tssPlanned)} TSS planned "
                 utils.ppt(s)
