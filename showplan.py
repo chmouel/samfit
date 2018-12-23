@@ -14,15 +14,15 @@ def convert_seconds_to_pace(seconds):
     return f"{sp[1]}'{sec}"
 
 
-def convertTreshold(wtype, percent):
+def convertTreshold(wtype, percent, pace, ftp):
     if config.TP_TYPE[wtype] == 'Running':
-        tresholds = conver_pace_to_seconds(config.USER_PACE)
+        tresholds = conver_pace_to_seconds(pace)
         return convert_seconds_to_pace(tresholds / percent * 100)
     elif config.TP_TYPE[wtype] == 'Cycling':
-        return round(config.USER_FTP * percent / 100)
+        return round(ftp * percent / 100)
 
 
-def show_workout(workout):
+def show_workout(args, workout):
     ret = ''
     if not workout['structure'] or 'structure' not in workout['structure']:
         return
@@ -76,7 +76,8 @@ def show_workout(workout):
             st += f"{s} "
             st += utils.secondsToText(step['length']['value']) + " "
             pace = convertTreshold(workout['workoutTypeValueId'],
-                                   round(median))
+                                   round(median), args.user_pace,
+                                   args.user_ftp)
             st += f"{pace}"
             if config.TP_TYPE[workout['workoutTypeValueId']] == 'Cycling':
                 st += f"W‍"
@@ -128,7 +129,7 @@ def show_plan(args):
                                                config.TP_OTHER_TYPE_ID):
                     continue
 
-                pw = show_workout(w)
+                pw = show_workout(args, w)
                 if pw:
                     print(pw)
                 else:

@@ -46,6 +46,20 @@ def parse_args():
     )
 
     parser.add_argument(
+        '--user-ftp',
+        type=int,
+        default=config.USER_FTP,
+        help="User FTP",
+    )
+
+    parser.add_argument(
+        '--user-pace',
+        type=str,
+        default=config.USER_PACE,
+        help="User Treshold Pace",
+    )
+
+    parser.add_argument(
         '-t',
         '--test',
         action='store_true',
@@ -193,6 +207,8 @@ def main(arguments):
 
     if args.action == "show_plan":
         return showplan.show_plan(args)
+
+    parser.print_help()
 
 
 if __name__ == '__main__':
