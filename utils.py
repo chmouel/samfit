@@ -12,6 +12,7 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
+
 import os
 import json
 import subprocess
@@ -62,9 +63,11 @@ def get_filej(fff):
     return json.load(fp)
 
 
-def ppt(ss, ppt='-'):
+def ppt(ss, ppt='-', ll=None):
+    if not ll:
+        ll = len(ss)
     print(ss)
-    print(ppt * len(ss))
+    print(ppt * ll)
 
 
 def secondsToText(secs):
@@ -77,3 +80,24 @@ def secondsToText(secs):
         ("{0}mn{1}".format(minutes, "s" if minutes != 1 else "") if minutes else "") + \
         ("{0}sec{1}".format(seconds, "s" if seconds != 1 else "") if seconds else "")
     return result
+
+
+def colourText(text, color):
+    if not color:
+        return text
+
+    colours = {
+        'red': "\033[1;31m",
+        'yellow': "\033[1;33m",
+        'blue': "\033[1;34m",
+        'blue_reverse': "\033[1;44m",
+        'cyan': "\033[1;36m",
+        'green': "\033[1;32m",
+        'grey': "\033[1;30m",
+        'magenta': "\033[1;35m",
+        'white': "\033[1;47m",
+        'white_italic': "\033[1;3m",
+        'reset': "\033[0;0m",
+    }
+    s = f"{colours[color]}{text}{colours['reset']}"
+    return s
