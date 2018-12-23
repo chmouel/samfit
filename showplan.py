@@ -36,7 +36,7 @@ def show_workout(args, workout):
             workout['structure']['structure'][-1]['end'])
         ret += f"{total_time} "
 
-    ret += f"{workout['title']}\n"
+    ret += f"{workout['title']} - TSS:{round(workout['tssPlanned'])}\n"
 
     for structure in workout['structure']['structure']:
         ret += "  - "
@@ -120,7 +120,7 @@ def show_plan(args):
                 s = utils.colourText(s, 'blue')
                 utils.ppt(s, ll=ll)
             else:
-                s = f"\n{day}: {numberOfWorkouts} Workouts, {round(tssPlanned)} TSS planned "
+                s = f"\n{day}: {numberOfWorkouts} Workout"
                 utils.ppt(s)
 
             for w in daysw:
