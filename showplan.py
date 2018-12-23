@@ -114,4 +114,3 @@ def show_plan(args):
                 else:
                     print("%s: %s" % (config.TP_TYPE[int(
                         w['workoutTypeValueId'])], w['title']))
-        break
