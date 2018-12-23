@@ -48,25 +48,16 @@ def show_workout(workout):
             else:
                 s = step['intensityClass']
 
-            mm = round(step['length']['value'] / 60)
-            if mm == 0:
-                ret += str(step['length']['value']) + " seconds "
-            else:
-                ret += str(mm) + " minute"
-                if mm > 1:
-                    ret += "s"
-                ret += " "
-            ret += s + " "
+            ret += utils.secondsToText(step['length']['value']) + " "
             median = (step['targets'][0]['minValue'] +
                       step['targets'][0]['maxValue']) / 2
-            ret += str(round(median)) + "% "
-
             pace = convertTreshold(workout['workoutTypeValueId'],
                                    round(median))
+            ret += f"{pace}"
             if config.TP_TYPE[workout['workoutTypeValueId']] == 'Cycling':
-                ret += f"FTP {pace}W‍"
-            elif config.TP_TYPE[workout['workoutTypeValueId']] == 'Running':
-                ret += f"Treshold {pace}"
+                ret += f"W‍"
+
+            ret += " [" + str(round(median)) + "%]"
 
             if structure['steps'][-1] != step:
                 ret += " / "
@@ -97,7 +88,8 @@ def show_plan(args):
                     numberOfWorkouts += 1
 
             if numberOfWorkouts == 0:
-                print(f"\n/{day}: Rest Day/")
+                s = f"\n{day}: Rest Day 😴"
+                utils.ppt(s)
             else:
                 s = f"\n{day}: {numberOfWorkouts} Workouts, {round(tssPlanned)} TSS planned "
                 utils.ppt(s)
@@ -109,9 +101,14 @@ def show_plan(args):
                     continue
 
                 pw = show_workout(w)
-
                 if pw:
                     print(pw)
                 else:
-                    print("%s: %s" % (config.TP_TYPE[int(
-                        w['workoutTypeValueId'])], w['title']))
+                    tt = config.TP_TYPE[int(w['workoutTypeValueId'])]
+                    emoji = ''
+                    if tt == 'Swimming':
+                        emoji = '🏊‍'
+                    elif tt == 'Strength':
+                        emoji = '🏋️‍'
+
+                    print(f"{tt}: {w['title']} {emoji}")
