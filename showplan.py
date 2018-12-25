@@ -48,8 +48,8 @@ def show_workout(args, workout):
             s = utils.colourText(structure['length']['value'], 'magenta')
             ret += f"{s} * "
 
-        if len(structure['steps']) > 1:
-            ret += "("
+        # if len(structure['steps']) > 1:
+        #     ret += "("
         for step in structure['steps']:
             st = ''
             median = (step['targets'][0]['minValue'] +
@@ -66,6 +66,7 @@ def show_workout(args, workout):
                 color = 'cyan'
             elif step['intensityClass'] == "active":
                 s = step['intensityClass'].title()
+                s = ""
 
                 color = 'green'
                 if median > 80:
@@ -92,8 +93,8 @@ def show_workout(args, workout):
             if structure['steps'][-1] != step:
                 ret += " / "
 
-        if len(structure['steps']) > 1:
-            ret += ")"
+        # if len(structure['steps']) > 1:
+        #     ret += ")"
         ret += "\n"
     return ret
 
