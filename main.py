@@ -120,6 +120,14 @@ def parse_args():
         help="Show only this week",
     )
 
+    show_plan.add_argument(
+        '--description',
+        '-d',
+        action='store_true',
+        default=False,
+        help="Show description",
+    )
+
     tp_import_plan = mainparser.add_parser(
         'tp_import_plan',
         help="Import our own generated plan starting from a date.")

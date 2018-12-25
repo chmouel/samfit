@@ -64,7 +64,10 @@ def show_workout(args, workout):
                 color = 'white_italic'
             elif step['intensityClass'] == "rest":
                 s = "Rest"
-                color = 'cyan'
+                if structure['length']['value'] > 1:
+                    color = 'cyan'
+                else:
+                    color = 'white_italic'
             elif step['intensityClass'] == "active":
                 if structure['length']['value'] == 1:
                     s = 'Active for'
@@ -148,7 +151,7 @@ def show_plan(args):
                     numberOfWorkouts += 1
 
             if numberOfWorkouts == 0:
-                s = f"\n{cursor_date.strftime('%A %d %b')}: Rest Day 😴"
+                s = f"\n* {cursor_date.strftime('%A %d %b')}: \n\tRest Day 😴"
                 color = 'cyan_italic'
             else:
                 s = f"\n{cursor_date.strftime('%A %d %b')}: {numberOfWorkouts} Workout"
@@ -173,7 +176,17 @@ def show_plan(args):
                     elif tt == 'Strength':
                         emoji = '🏋️‍'
 
-                    week_str += f"{tt}: {w['title']} {emoji}\n"
+                    week_str += f"\n* {tt}: {w['title']} {emoji}\n\n"
+                if args.description:
+                    week_str += utils.colourText("Description:",
+                                                 "yellow") + "\n"
+                    week_str += '{0: >4}'.format(w['description']) + "\n\n"
+
+                    if w['coachComments']:
+                        week_str += utils.colourText("Coach Comment:",
+                                                     "yellow") + "\n"
+                        week_str += '{0: >4}'.format(w['coachComments'] +
+                                                     "\n\n")
 
         if args.week and not print_week:
             continue

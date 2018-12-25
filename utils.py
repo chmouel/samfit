@@ -100,7 +100,7 @@ def colourText(text, color):
         'grey': "\033[1;30m",
         'magenta_surligned': "\033[4;35m",
         'magenta': "\033[1;35m",
-        'white': "\033[1;47m",
+        'white': "\033[1;37m",
         'white_italic': "\033[1;3m",
         'reset': "\033[0;0m",
     }
