@@ -107,15 +107,25 @@ def show_plan(args):
     plan = utils.get_filej(args.plan_file)
     if not plan:
         raise Exception(f"Cannot find plan: {args.plan_file}")
+
     for week in plan:
+        week_str = ''
+        print_week = False
+
         if not args.today:
-            ret += utils.ppt(f"\nWeek: {week['Week']}", ppt='=')
+            week_str += utils.ppt(f"\nWeek: {week['Week']}", ppt='=')
         for day in list(calendar.day_name):
             cursor_date = cursor_date + datetime.timedelta(days=1)
 
             tdd = datetime.datetime.now()
             if args.today and \
                (cursor_date.strftime("%Y%m%d") != tdd.strftime("%Y%m%d")):
+                continue
+
+            if args.week and \
+               (cursor_date.strftime("%Y%m%d") == tdd.strftime("%Y%m%d")):
+                print_week = True
+            elif args.week and not print_week:
                 continue
 
             if day not in week["Workouts"] \
@@ -141,7 +151,7 @@ def show_plan(args):
                 s = f"\n{cursor_date.strftime('%A %d %b')}: {numberOfWorkouts} Workout"
                 color = "cyan_surligned"
             s = utils.colourText(s, color)
-            ret += s + "\n"
+            week_str += s + "\n"
 
             for w in daysw:
                 if w['workoutTypeValueId'] in (config.TP_NOTE_TYPE_ID,
@@ -151,7 +161,7 @@ def show_plan(args):
 
                 pw = show_workout(args, w)
                 if pw:
-                    ret += "\n" + pw + "\n"
+                    week_str += "\n" + pw + "\n"
                 else:
                     tt = config.TP_TYPE[int(w['workoutTypeValueId'])]
                     emoji = ''
@@ -160,6 +170,10 @@ def show_plan(args):
                     elif tt == 'Strength':
                         emoji = '🏋️‍'
 
-                    ret += f"{tt}: {w['title']} {emoji}\n"
+                    week_str += f"{tt}: {w['title']} {emoji}\n"
+
+        if args.week and not print_week:
+            continue
+        ret += week_str
 
     print(ret)

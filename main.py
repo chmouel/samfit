@@ -113,6 +113,13 @@ def parse_args():
         help="Show only today",
     )
 
+    show_plan.add_argument(
+        '--week',
+        action='store_true',
+        default=False,
+        help="Show only this week",
+    )
+
     tp_import_plan = mainparser.add_parser(
         'tp_import_plan',
         help="Import our own generated plan starting from a date.")
