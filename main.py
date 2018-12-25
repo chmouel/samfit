@@ -108,6 +108,7 @@ def parse_args():
 
     show_plan.add_argument(
         '--today',
+        '-t',
         action='store_true',
         default=False,
         help="Show only today",
@@ -115,6 +116,7 @@ def parse_args():
 
     show_plan.add_argument(
         '--week',
+        '-w',
         action='store_true',
         default=False,
         help="Show only this week",
