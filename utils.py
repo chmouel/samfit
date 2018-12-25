@@ -89,6 +89,7 @@ def colourText(text, color):
 
     colours = {
         'red': "\033[1;31m",
+        'title': "\033[4;40m",
         'yellow': "\033[1;33m",
         'blue': "\033[1;34m",
         'blue_reverse': "\033[1;44m",

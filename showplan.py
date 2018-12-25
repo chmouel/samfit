@@ -32,21 +32,22 @@ def show_workout(args, workout):
     emoji = '🚴'
     if config.TP_TYPE[workout['workoutTypeValueId']] == 'Running':
         emoji = '🏃'
-    ret += f"* {emoji} "
+    title = f"* {emoji} "
 
     if len(workout['structure']['structure']) > 1:
         total_time = utils.secondsToText(
             workout['structure']['structure'][-1]['end'])
-        ret += f"{total_time} "
+        title += f"{total_time} "
 
-    ret += f"{workout['title']} - TSS:{round(workout['tssPlanned'])}\n"
+    title += f"{workout['title']} - TSS:{round(workout['tssPlanned'])}\n"
+    ret += utils.colourText(title, 'title')
 
     for structure in workout['structure']['structure']:
         ret += "  - "
         if structure['type'] == 'repetition' and  \
            structure['length']['value'] != 1:
             s = utils.colourText(structure['length']['value'], 'magenta')
-            ret += f"{s} * "
+            ret += f"{s} *"
 
         # if len(structure['steps']) > 1:
         #     ret += "("
@@ -56,17 +57,19 @@ def show_workout(args, workout):
                       step['targets'][0]['maxValue']) / 2
             color = ''
             if step['intensityClass'] == "warmUp":
-                s = "Warm Up"
+                s = "Warm Up for"
                 color = 'white_italic'
             elif step['intensityClass'] == "coolDown":
-                s = "Warm Down"
+                s = "Warm Down for"
                 color = 'white_italic'
             elif step['intensityClass'] == "rest":
                 s = "Rest"
                 color = 'cyan'
             elif step['intensityClass'] == "active":
-                s = step['intensityClass'].title()
-                s = ""
+                if structure['length']['value'] == 1:
+                    s = 'Active for'
+                else:
+                    s = ''
 
                 color = 'green'
                 if median > 80:
@@ -82,7 +85,7 @@ def show_workout(args, workout):
             pace = convertTreshold(workout['workoutTypeValueId'],
                                    round(median), args.user_pace,
                                    args.user_ftp)
-            st += f"{pace}"
+            st += f"at {pace}"
             if config.TP_TYPE[workout['workoutTypeValueId']] == 'Cycling':
                 st += f"W‍"
 
