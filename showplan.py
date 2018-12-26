@@ -7,7 +7,7 @@ import utils
 import dateutil.parser as dtparser
 
 
-def conver_pace_to_seconds(pace):
+def convert_pace_to_seconds(pace):
     return (int(pace[:pace.find("'")]) * 60) + int(pace[pace.find("'") + 1:])
 
 
@@ -19,7 +19,7 @@ def convert_seconds_to_pace(seconds):
 
 def convertTreshold(wtype, percent, pace, ftp):
     if config.TP_TYPE[wtype] == 'Running':
-        tresholds = conver_pace_to_seconds(pace)
+        tresholds = convert_pace_to_seconds(pace)
         return convert_seconds_to_pace(tresholds / percent * 100)
     elif config.TP_TYPE[wtype] == 'Cycling':
         return round(ftp * percent / 100)
@@ -151,7 +151,7 @@ def show_plan(args):
                     numberOfWorkouts += 1
 
             if numberOfWorkouts == 0:
-                s = f"\n* {cursor_date.strftime('%A %d %b')}: \n\tRest Day 😴"
+                s = f"\n* {cursor_date.strftime('%A %d %b')}: \n\tRest Day 😴🛌💤"
                 color = 'cyan_italic'
             else:
                 s = f"\n{cursor_date.strftime('%A %d %b')}: {numberOfWorkouts} Workout"
@@ -179,14 +179,13 @@ def show_plan(args):
                     week_str += f"\n* {tt}: {w['title']} {emoji}\n\n"
                 if args.description:
                     week_str += utils.colourText("Description:",
-                                                 "yellow") + "\n"
-                    week_str += '{0: >4}'.format(w['description']) + "\n\n"
+                                                 "yellow") + "\n" + "\n"
+                    week_str += utils.addSpaceToString(w['description']) + "\n\n"
 
-                    if w['coachComments']:
-                        week_str += utils.colourText("Coach Comment:",
+                if w['coachComments']:
+                    week_str += utils.colourText("Coach Comment:",
                                                      "yellow") + "\n"
-                        week_str += '{0: >4}'.format(w['coachComments'] +
-                                                     "\n\n")
+                    week_str += utils.addSpaceToString(w['coachComments']) + "\n\n"
 
         if args.week and not print_week:
             continue

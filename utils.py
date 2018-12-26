@@ -106,3 +106,12 @@ def colourText(text, color):
     }
     s = f"{colours[color]}{text}{colours['reset']}"
     return s
+
+
+def addSpaceToString(s, spaces=2):
+    ret = []
+    longest = 0
+    for x in s.split("\r\n"):
+        longest = len(x) > longest and len(x)
+        ret.append(f"  {x}")
+    return "\n".join(ret)
