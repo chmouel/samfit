@@ -114,16 +114,20 @@ def show_plan(args):
     if not plan:
         raise Exception(f"Cannot find plan: {args.plan_file}")
 
+    if args.date:
+        args.today = dtparser.parse(args.date)
+
     for week in plan:
         week_str = ''
         print_week = False
 
         if not args.today:
             week_str += utils.ppt(f"\nWeek: {week['Week']}", ppt='=')
+
         for day in list(calendar.day_name):
             cursor_date = cursor_date + datetime.timedelta(days=1)
 
-            tdd = datetime.datetime.now()
+            tdd = args.today
             if args.today and \
                (cursor_date.strftime("%Y%m%d") != tdd.strftime("%Y%m%d")):
                 continue
@@ -180,12 +184,14 @@ def show_plan(args):
                 if args.description:
                     week_str += utils.colourText("Description:",
                                                  "yellow") + "\n" + "\n"
-                    week_str += utils.addSpaceToString(w['description']) + "\n\n"
+                    week_str += utils.addSpaceToString(
+                        w['description']) + "\n\n"
 
                 if w['coachComments']:
                     week_str += utils.colourText("Coach Comment:",
-                                                     "yellow") + "\n"
-                    week_str += utils.addSpaceToString(w['coachComments']) + "\n\n"
+                                                 "yellow") + "\n"
+                    week_str += utils.addSpaceToString(
+                        w['coachComments']) + "\n\n"
 
         if args.week and not print_week:
             continue

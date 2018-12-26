@@ -107,6 +107,12 @@ def parse_args():
     )
 
     show_plan.add_argument(
+        '--date',
+        type=str,
+        help="Show at this specific date",
+    )
+
+    show_plan.add_argument(
         '--today',
         '-t',
         action='store_true',
