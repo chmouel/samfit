@@ -138,7 +138,44 @@ def parse_plans(args):
         cache_path,
     )
     args.filter_library_regexp = f"^{args.library_name}$"
-    ret[cursor_date] = [workouts[x['Workout']['Name']] for x in week[day]]
+    workouts = tplib.get_all_workouts_library(args)
+    athlete_id = tpuser.get_userinfo(args.tp_user,
+                                     args.tp_password)['user']['personId']
+    plan_name = plan['Name']
+
+    coachComments = f"""Number of Workout {plan['WorkoutCount']}
+TSS per Week: {plan['TSSPerWeek']}
+Hours Per Week: {plan['HoursPerWeek']}
+"""
+    tpcal.create_calendar_other(
+        args,
+        banner_message="Welcome Note",
+        athlete_id=athlete_id,
+        date=start_date,
+        name=plan_name,
+        coachComments=coachComments,
+        description=html2text.html2text(plan['Description']),
+        title=f"Welcome to {plan['Name']} TrainerRoad plan",
+        testmode=True)  # TODO(chmou):
+
+    ret = {}
+    for week in plan['Weeks']:
+        for day in list(calendar.day_name):
+            # Do this here since they are days and before we skip to next ones,
+            cursor_date = cursor_date + datetime.timedelta(days=1)
+            if day == 'Monday':
+                ret[cursor_date] = {
+                    'title': f'{week["Name"]} - {plan_name}',
+                    'description': week['Description'],
+                    'coachComment': week['Tips'],
+                }
+
+            if not week[day]:  # empty
+                continue
+
+            ret[cursor_date] = [
+                workouts[x['Workout']['Name']] for x in week[day]
+            ]
 
     for date in ret:
         if type(ret[date]) is dict:  # NOTE: this is a note
