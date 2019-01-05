@@ -190,7 +190,7 @@ def parse_args():
     tp_calendar_workouts_ical.add_argument(
         '--no-cache',
         action='store_true',
-        default=True,
+        default=False,
         help="Decide if we want to use cache",
     )
 

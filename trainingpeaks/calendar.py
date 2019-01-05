@@ -138,7 +138,6 @@ def build_workout(current, workout, workoutdate):
 
 def calendar_workouts_ical(args):
     ical_file = args.output_file
-    args.no_cache = False
     tmpfile = None
     if args.generated_output_file:
         args.output_file = args.generated_output_file
