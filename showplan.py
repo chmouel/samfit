@@ -185,7 +185,7 @@ def show_plan(args):
                     elif tt == 'Strength':
                         emoji = '🏋️‍'
 
-                    week_str += f"\n* {emoji}{tt}: {w['title']}\n\n"
+                    week_str += f"\n* {emoji} {tt}: {w['title']}\n\n"
                 if args.description:
                     week_str += utils.colourText("Description:",
                                                  "yellow") + "\n" + "\n"
