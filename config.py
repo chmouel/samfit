@@ -43,7 +43,7 @@ ACTIVE_CADENCE_MIN = 95
 ACTIVE_CADENCE_MAX = 105
 
 USER_FTP = 245
-USER_PACE = "4'50"
+USER_PACE = "4'25"
 
 # In osx keychain if we don't want to pass the password in clears
 TP_SECURITY_ACCOUNT = 'chmouel'
