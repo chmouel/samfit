@@ -16,8 +16,8 @@ import os
 
 TR_USERNAME = 'samfit'
 TP_USERNAME = 'chmouel'
-if os.path.exists(os.path.expanduser("~/GIT/samfit")):
-    BASE_DIR = os.path.expanduser("~/GIT/samfit")
+if os.path.exists(os.path.expanduser("~/Work/samfit")):
+    BASE_DIR = os.path.expanduser("~/Work/samfit")
 else:
     BASE_DIR = os.path.expanduser("~/Dropbox/Documents/Fitness/traineroad")
 
