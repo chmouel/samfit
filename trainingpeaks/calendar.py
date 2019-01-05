@@ -155,7 +155,7 @@ def calendar_workouts_ical(args):
     for week in plan:
         for day in list(calendar.day_name):
             cursor_date = cursor_date + datetime.timedelta(days=1)
-            cursor_date = cursor_date.replace(hour=7, minute=0)
+            cursor_date = cursor_date.replace(hour=6, minute=0)
 
             if day not in week[
                     "Workouts"] or not week["Workouts"][day]:  # empty
@@ -169,7 +169,7 @@ def calendar_workouts_ical(args):
                     event.name += " " + utils.secondsToText(
                         current["totalTimePlanned"] * (60 * 60))
                     event.duration = datetime.timedelta(
-                        seconds=current["totalTimePlanned"] * (60 * 60))
+                        seconds=(current["totalTimePlanned"] * (60 * 60)))
 
                 event.description = current["description"] and current[
                     "description"].replace("\r", "") or ""
@@ -185,8 +185,11 @@ def calendar_workouts_ical(args):
                     event.description += current["coachComments"].replace(
                         "\r", "\n")
 
-                # TODO(chmou):increase hours ?
                 event.begin = cursor_date
+                if current["totalTimePlanned"]:
+                    cursor_date = cursor_date + datetime.timedelta(
+                        minutes=30) + datetime.timedelta(
+                            seconds=current["totalTimePlanned"] * (60 * 60))
                 events.append(event)
 
     @ics.Calendar._outputs
