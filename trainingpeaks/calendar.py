@@ -140,7 +140,6 @@ def calendar_workouts_ical(args):
     ical_file = args.output_file
     args.no_cache = False
     tmpfile = None
-
     if args.generated_output_file:
         args.output_file = args.generated_output_file
     else:
@@ -190,6 +189,14 @@ def calendar_workouts_ical(args):
                 # TODO(chmou):increase hours ?
                 event.begin = cursor_date
                 events.append(event)
+
+    @ics.Calendar._outputs
+    def o_custom(calendar, container):
+        if args.calendar_title:
+            container.append(f"X-WR-CALNAME:{args.calendar_title}")
+            container.append(f"X-WR-CALDESC: Road to {args.calendar_title}")
+        container.append(f"X-WR-TIMEZONE: {config.TIME_ZONE}")
+
     output = str(ics.Calendar(events=events))
     print(f"Generated iCS Calendar to: {ical_file}")
     open(ical_file, "w").write(output)

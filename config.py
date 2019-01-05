@@ -27,6 +27,8 @@ TP_OTHER_TYPE_ID = 100
 TP_NOTE_TYPE_ID = 10
 TP_REST_TYPE_ID = 7
 
+TIME_ZONE = "Europe/Paris"
+
 TP_TYPE = {
     100: 'Other',
     10: 'Note',

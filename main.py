@@ -182,6 +182,12 @@ def parse_args():
     )
 
     tp_calendar_workouts_ical.add_argument(
+        '--calendar-title',
+        type=str,
+        help="Calendar title.",
+    )
+
+    tp_calendar_workouts_ical.add_argument(
         '--no-cache',
         action='store_true',
         default=True,
