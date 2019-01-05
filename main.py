@@ -152,6 +152,42 @@ def parse_args():
         help="Start date",
     )
 
+    tp_calendar_workouts_ical = mainparser.add_parser(
+        'tp_calendar_workouts_ical',
+        help="Get all TrainingPeaks workouts from calendar and "
+        " output it to an iCal file.")
+
+    tp_calendar_workouts_ical.add_argument(
+        dest="from_date",
+        type=str,
+        help="From date",
+    )
+
+    tp_calendar_workouts_ical.add_argument(
+        dest="to_date",
+        type=str,
+        help="To date",
+    )
+
+    tp_calendar_workouts_ical.add_argument(
+        dest="output_file",
+        type=str,
+        help="iCal output file",
+    )
+
+    tp_calendar_workouts_ical.add_argument(
+        '--generated-output-file',
+        type=str,
+        help="Where to output the TP.",
+    )
+
+    tp_calendar_workouts_ical.add_argument(
+        '--no-cache',
+        action='store_true',
+        default=True,
+        help="Decide if we want to use cache",
+    )
+
     tp_get_calendar_workouts = mainparser.add_parser(
         'tp_get_calendar_workouts',
         help="Get all TrainingPeaks workouts from calendar dates and "
@@ -173,6 +209,13 @@ def parse_args():
         dest="output_file",
         type=str,
         help="Output file",
+    )
+
+    tp_get_calendar_workouts.add_argument(
+        '--no-cache',
+        action='store_true',
+        default=False,
+        help="Don't do caching when getting workouts",
     )
 
     tp_import_tr_workouts = mainparser.add_parser(
@@ -236,6 +279,9 @@ def main(arguments):
 
     if args.action == "tp_get_calendar_workouts":
         return tpcal.get_calendar_workouts(args)
+
+    if args.action == "tp_calendar_workouts_ical":
+        return tpcal.calendar_workouts_ical(args)
 
     if args.action == "tp_import_plan":
         return tpcal.import_plan(args)

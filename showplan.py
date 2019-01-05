@@ -25,7 +25,7 @@ def convertTreshold(wtype, percent, pace, ftp):
         return round(ftp * percent / 100)
 
 
-def show_workout(args, workout):
+def show_workout(args, workout, colorize=True, extranewlines=False):
     ret = ''
     if not workout['structure'] or 'structure' not in workout['structure']:
         return
@@ -39,14 +39,17 @@ def show_workout(args, workout):
             workout['structure']['structure'][-1]['end'])
         title += f"{total_time} "
 
-    title += f"{workout['title']} - TSS:{round(workout['tssPlanned'])}\n"
-    ret += utils.colourText(title, 'title')
+    title += f"{workout['title']} - TSS: {round(workout['tssPlanned'])}\n"
+    if extranewlines:
+        title += "\n"
+    ret += utils.colourText(title, 'title', colorize=colorize)
 
     for structure in workout['structure']['structure']:
         ret += "  - "
         if structure['type'] == 'repetition' and  \
            structure['length']['value'] != 1:
-            s = utils.colourText(structure['length']['value'], 'magenta')
+            s = utils.colourText(
+                structure['length']['value'], 'magenta', colorize=colorize)
             ret += f"{s} *"
 
         # if len(structure['steps']) > 1:
@@ -94,7 +97,7 @@ def show_workout(args, workout):
 
             st += " [" + str(round(median)) + "%]"
 
-            ret += utils.colourText(st, color)
+            ret += utils.colourText(st, color, colorize=colorize)
 
             if structure['steps'][-1] != step:
                 ret += " / "
@@ -102,6 +105,8 @@ def show_workout(args, workout):
         # if len(structure['steps']) > 1:
         #     ret += ")"
         ret += "\n"
+        if extranewlines:
+            ret += "\n"
     return ret
 
 
@@ -180,7 +185,7 @@ def show_plan(args):
                     elif tt == 'Strength':
                         emoji = '🏋️‍'
 
-                    week_str += f"\n* {tt}: {w['title']} {emoji}\n\n"
+                    week_str += f"\n* {emoji}{tt}: {w['title']}\n\n"
                 if args.description:
                     week_str += utils.colourText("Description:",
                                                  "yellow") + "\n" + "\n"
