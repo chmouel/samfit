@@ -28,21 +28,21 @@ def get_password_from_osx(service, account):
                             stdout=subprocess.PIPE).communicate()[0].strip()
 
 
-def get_or_cache(getter, url, obj):
+def get_or_cache(getter, url, obj, cache=True):
     if obj.startswith("/"):
         fpath = obj + ".json"
     else:
         fpath = os.path.join(config.BASE_DIR, "cache", obj + ".json")
 
-    if os.path.exists(fpath):
-        return json.load(open(fpath, 'r'))
-    if os.path.exists(fpath + ".gz"):
-        return json.load(gzip.open(fpath + ".gz"))
+    if cache:
+        if os.path.exists(fpath):
+            return json.load(open(fpath, 'r'))
+        if os.path.exists(fpath + ".gz"):
+            return json.load(gzip.open(fpath + ".gz"))
 
-    if not os.path.exists(fpath):
-        jeez = getter(url)
-        json.dump(jeez, open(fpath, 'w'))
-        return jeez
+    jeez = getter(url)
+    json.dump(jeez, open(fpath, 'w'))
+    return jeez
 
 
 def get_filej(fff):
