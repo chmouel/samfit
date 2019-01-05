@@ -47,17 +47,24 @@ def parse_args():
     )
 
     parser.add_argument(
-        '--user-ftp',
+        '--user-cycling-ftp',
         type=int,
         default=config.USER_FTP,
-        help="User FTP",
+        help="User Cycling FTP",
     )
 
     parser.add_argument(
-        '--user-pace',
+        '--user-run-pace',
         type=str,
-        default=config.USER_PACE,
-        help="User Treshold Pace",
+        default=config.USER_RUN_PACE,
+        help="User Run Treshold Pace",
+    )
+
+    parser.add_argument(
+        '--user-swim-pace',
+        type=str,
+        default=config.USER_SWIM_PACE,
+        help="User Swim Treshold Pace",
     )
 
     parser.add_argument(

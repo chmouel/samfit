@@ -8,7 +8,11 @@ import dateutil.parser as dtparser
 
 
 def convert_pace_to_seconds(pace):
-    return (int(pace[:pace.find("'")]) * 60) + int(pace[pace.find("'") + 1:])
+    if "'" in pace:
+        l = "'"
+    elif ":" in pace:
+        l = ":"
+    return (int(pace[:pace.find(l)]) * 60) + int(pace[pace.find(l) + 1:])
 
 
 def convert_seconds_to_pace(seconds):
@@ -17,9 +21,15 @@ def convert_seconds_to_pace(seconds):
     return f"{sp[1]}'{sec}"
 
 
-def convertTreshold(wtype, percent, pace, ftp):
+def convertTreshold(wtype, percent, run_pace, swim_pace, ftp):
+    if percent == 0:
+        return "still 🧘"
+
     if config.TP_TYPE[wtype] == 'Running':
-        tresholds = convert_pace_to_seconds(pace)
+        tresholds = convert_pace_to_seconds(run_pace)
+        return convert_seconds_to_pace(tresholds / percent * 100)
+    if config.TP_TYPE[wtype] == 'Swim':
+        tresholds = convert_pace_to_seconds(swim_pace)
         return convert_seconds_to_pace(tresholds / percent * 100)
     elif config.TP_TYPE[wtype] == 'Cycling':
         return round(ftp * percent / 100)
@@ -32,6 +42,8 @@ def show_workout(args, workout, colorize=True, extranewlines=False):
     emoji = '🚴'
     if config.TP_TYPE[workout['workoutTypeValueId']] == 'Running':
         emoji = '🏃'
+    elif config.TP_TYPE[workout['workoutTypeValueId']] == 'Swim':
+        emoji = '🏊'
     title = f"* {emoji} "
 
     if len(workout['structure']['structure']) > 1:
@@ -66,7 +78,10 @@ def show_workout(args, workout, colorize=True, extranewlines=False):
                 s = "Warm Down for"
                 color = 'white_italic'
             elif step['intensityClass'] == "rest":
-                s = "Rest"
+                if median == 0:
+                    s = "Rest"
+                else:
+                    s = "Easy"
                 if structure['length']['value'] > 1:
                     color = 'cyan'
                 else:
@@ -89,13 +104,14 @@ def show_workout(args, workout, colorize=True, extranewlines=False):
             st += f"{s} "
             st += utils.secondsToText(step['length']['value']) + " "
             pace = convertTreshold(workout['workoutTypeValueId'],
-                                   round(median), args.user_pace,
-                                   args.user_ftp)
+                                   round(median), args.user_run_pace,
+                                   args.user_swim_pace, args.user_cycling_ftp)
             st += f"at {pace}"
             if config.TP_TYPE[workout['workoutTypeValueId']] == 'Cycling':
                 st += f"W‍"
 
-            st += " [" + str(round(median)) + "%]"
+            if median > 0:
+                st += " [" + str(round(median)) + "%]"
 
             ret += utils.colourText(st, color, colorize=colorize)
 
