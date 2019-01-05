@@ -137,6 +137,8 @@ def show_plan(args):
 
     if args.date:
         args.today = dtparser.parse(args.date)
+    elif args.today:
+        args.today = datetime.datetime.now()
 
     for week in plan:
         week_str = ''
