@@ -139,6 +139,8 @@ def show_plan(args):
         args.today = dtparser.parse(args.date)
     elif args.today:
         args.today = datetime.datetime.now()
+    if args.today:
+        args.description = True
 
     for week in plan:
         week_str = ''
@@ -220,4 +222,7 @@ def show_plan(args):
             continue
         ret += week_str
 
-    print(ret)
+    if args.today and not ret:
+        print("Nothing to do today 💤 Zzz🎮🍸👩‍❤️‍👨")
+    elif ret:
+        print(ret)
