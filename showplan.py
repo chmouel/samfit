@@ -192,6 +192,10 @@ def show_plan(args):
             week_str += s + "\n"
 
             for w in daysw:
+                # NOTE(chmou): this is already done workout, let's skip this
+                if w['distance']:
+                    continue
+
                 if w['workoutTypeValueId'] in (config.TP_NOTE_TYPE_ID,
                                                config.TP_REST_TYPE_ID,
                                                config.TP_OTHER_TYPE_ID):
@@ -209,7 +213,7 @@ def show_plan(args):
                         emoji = '🏋️‍'
 
                     week_str += f"\n* {emoji} {tt}: {w['title']}\n\n"
-                if args.description:
+                if args.description and w['description']:
                     week_str += utils.colourText("Description:",
                                                  "yellow") + "\n" + "\n"
                     week_str += utils.addSpaceToString(
