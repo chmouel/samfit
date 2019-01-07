@@ -152,7 +152,10 @@ def show_plan(args):
         for day in list(calendar.day_name):
             cursor_date = cursor_date + datetime.timedelta(days=1)
 
-            tdd = args.today
+            if args.week:
+                tdd = datetime.datetime.now()
+            else:
+                tdd = args.today
             if args.today and \
                (cursor_date.strftime("%Y%m%d") != tdd.strftime("%Y%m%d")):
                 continue
