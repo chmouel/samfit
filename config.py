@@ -43,7 +43,7 @@ ACTIVE_CADENCE_MIN = 95
 ACTIVE_CADENCE_MAX = 105
 
 USER_FTP = 254
-USER_RUN_PACE = "4'25"
+USER_RUN_PACE = "4'15"
 USER_SWIM_PACE = "2'20"
 
 # In osx keychain if we don't want to pass the password in clears

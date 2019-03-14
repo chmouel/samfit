@@ -95,7 +95,7 @@ def colourText(text, color, colorize=True):
         'magenta_surligned': "\033[4;35m",
         'magenta': "\033[1;35m",
         'white': "\033[1;37m",
-        'white_italic': "\033[1;3m",
+        'white_italic': "\033[0;37m",
         'reset': "\033[0;0m",
     }
     s = f"{colours[color]}{text}{colours['reset']}"
