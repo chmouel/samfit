@@ -21,6 +21,7 @@ import trainingpeaks.calendar as tpcal
 import traineroad
 import config
 import showplan
+import zwift
 
 
 def parse_args():
@@ -231,6 +232,22 @@ def parse_args():
         help="Don't do caching when getting workouts",
     )
 
+    zwift_generate_zwo = mainparser.add_parser(
+        'zwift_generate_zwo', help="Generate zwift workouts from activity")
+
+    zwift_generate_zwo.add_argument(
+        '--output_dir',
+        type=str,
+        help="Output Directory for zwift files",
+    )
+
+    zwift_generate_zwo.add_argument(
+        'workout',
+        type=str,
+        nargs="+",
+        help="Workout file name or all to get everything",
+    )
+
     tp_import_tr_workouts = mainparser.add_parser(
         'tp_import_tr_workouts', help="Import all TR workouts in TP libraries")
 
@@ -304,6 +321,9 @@ def main(arguments):
 
     if args.action == "show_plan":
         return showplan.show_plan(args)
+
+    if args.action == "zwift_generate_zwo":
+        return zwift.generate_zwo(args)
 
     parser.print_help()
 
