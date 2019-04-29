@@ -175,7 +175,13 @@ Hours Per Week: {plan['HoursPerWeek']}
 
             ret[cursor_date] = [
                 workouts[x['Workout']['Name']] for x in week[day]
+                if x['Workout']['Name'] in workouts
             ]
+            for x in week[day]:
+                if not x['Workout']['Name'] in workouts:
+                    print(
+                        f"{x['Workout']['Name']} has been skipped cause not found in library"
+                    )
 
     for date in ret:
         if type(ret[date]) is dict:  # NOTE: this is a note
