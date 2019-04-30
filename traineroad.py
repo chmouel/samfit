@@ -116,9 +116,32 @@ def get_session():
     global SESSION
     if SESSION:
         return SESSION
-    password = utils.get_password_from_osx("chmouel", "trainerroad")
+    password = utils.get_password_from_osx("trainerroad", "chmouel")
     SESSION = TRSession(config.TR_USERNAME, password)
     return SESSION
+
+
+def get_plan(args):
+    plan_number = args.plan_number
+
+    for plan_number in args.plan_number:
+
+        cache_path = os.path.join(config.BASE_DIR, "plans",
+                                  f"plan-{plan_number}")
+
+        tr = get_session()
+        plan = utils.get_or_cache(
+            tr.get,
+            f"/plans/{plan_number}",
+            cache_path,
+            cache=False,
+        )
+        if 'ExceptionMessage' in plan:
+            print(f"Could not find plan {plan_number}")
+        else:
+            print(
+                f"'{plan['Plan']['Name']}' plan has been downloaded to {cache_path}"
+            )
 
 
 def parse_plans(args):

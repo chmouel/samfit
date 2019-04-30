@@ -265,6 +265,18 @@ def parse_args():
         help="The library name where to upload the workout we want",
     )
 
+    tr_get_plan = mainparser.add_parser(
+        'tr_get_plan', help="Get TR Plan and dump it in the cache")
+
+    tr_get_plan.add_argument(
+        '-p',
+        '--plan-number',
+        required=True,
+        nargs="+",
+        type=str,
+        help="Plan number",
+    )
+
     tr_plan_to_tp = mainparser.add_parser(
         'tr_plan_to_tp', help="Output TR plan to TP calendar")
 
@@ -306,6 +318,9 @@ def main(arguments):
 
     if args.action == "tr_plan_to_tp":
         return traineroad.parse_plans(args)
+
+    if args.action == "tr_get_plan":
+        return traineroad.get_plan(args)
 
     if args.action == "tp_get_calendar_workouts":
         return tpcal.get_calendar_workouts(args)

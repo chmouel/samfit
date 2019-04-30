@@ -16,6 +16,7 @@ import os
 
 TR_USERNAME = 'samfit'
 TP_USERNAME = 'chmouel'
+
 if os.path.exists(os.path.expanduser("~/Work/samfit")):
     BASE_DIR = os.path.expanduser("~/Work/samfit")
 else:
