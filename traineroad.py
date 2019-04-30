@@ -112,12 +112,14 @@ class TRSession(object):
         return self.session.get('https://www.trainerroad.com/api' + url).json()
 
 
-def get_session():
+def get_session(args):
     global SESSION
     if SESSION:
         return SESSION
-    password = utils.get_password_from_osx("trainerroad", "chmouel")
-    SESSION = TRSession(config.TR_USERNAME, password)
+    password = args.tr_password or utils.get_password_from_osx(
+        "trainerroad", "chmouel")
+    username = args.tr_username or config.TR_USERNAME
+    SESSION = TRSession(username, password)
     return SESSION
 
 
@@ -129,7 +131,7 @@ def get_plan(args):
         cache_path = os.path.join(config.BASE_DIR, "plans",
                                   f"plan-{plan_number}")
 
-        tr = get_session()
+        tr = get_session(args)
         plan = utils.get_or_cache(
             tr.get,
             f"/plans/{plan_number}",
@@ -154,7 +156,7 @@ def parse_plans(args):
             "%s don't start on a monday" % (start_date.today()))
 
     cursor_date = start_date - datetime.timedelta(days=1)
-    tr = get_session()
+    tr = get_session(args)
     plan = utils.get_or_cache(
         tr.get,
         f"/plans/{plan_number}",
