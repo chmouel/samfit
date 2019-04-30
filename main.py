@@ -19,6 +19,7 @@ import sys
 import trainingpeaks.library as tplib
 import trainingpeaks.calendar as tpcal
 import traineroad
+import traineroad_plan_md
 import config
 import showplan
 import zwift
@@ -271,6 +272,25 @@ def parse_args():
         help="The library name where to upload the workout we want",
     )
 
+    tr_generate_md = mainparser.add_parser(
+        'tr_generate_md', help="Generate TR Plan in markdown")
+
+    tr_generate_md.add_argument(
+        '--markdown-dir',
+        required=True,
+        type=str,
+        help="Document dire where we generate the markdown file",
+    )
+
+    tr_generate_md.add_argument(
+        '-p',
+        '--plan-number',
+        required=True,
+        nargs="+",
+        type=str,
+        help="Plan number",
+    )
+
     tr_get_plan = mainparser.add_parser(
         'tr_get_plan', help="Get TR Plan and dump it in the cache")
 
@@ -327,6 +347,9 @@ def main(arguments):
 
     if args.action == "tr_get_plan":
         return traineroad.get_plan(args)
+
+    if args.action == "tr_generate_md":
+        return traineroad_plan_md.generate(args)
 
     if args.action == "tp_get_calendar_workouts":
         return tpcal.get_calendar_workouts(args)
