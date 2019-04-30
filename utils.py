@@ -41,6 +41,9 @@ def get_or_cache(getter, url, obj, cache=True):
             return json.load(gzip.open(fpath + ".gz"))
 
     jeez = getter(url)
+    if 'ExceptionMessage' in jeez:
+        print(f"Error getting: {url}: {jeez['ExceptionMessage']}")
+        return None
     json.dump(jeez, open(fpath, 'w'))
     return jeez
 
