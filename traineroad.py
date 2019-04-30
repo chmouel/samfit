@@ -16,6 +16,7 @@ import calendar
 import datetime
 import dateutil.parser as parser
 import fcntl
+import getpass
 import os
 import requests
 import tempfile
@@ -117,8 +118,8 @@ def get_session(args):
     if SESSION:
         return SESSION
     password = args.tr_password or utils.get_password_from_osx(
-        "trainerroad", "chmouel")
-    username = args.tr_username or config.TR_USERNAME
+        "trainerroad", getpass.getuser())
+    username = args.tr_user or config.TR_USERNAME
     SESSION = TRSession(username, password)
     return SESSION
 
@@ -142,7 +143,7 @@ def get_plan(args):
             print(f"Could not find plan {plan_number}")
         else:
             print(
-                f"'{plan['Plan']['Name']}' plan has been downloaded to {cache_path}"
+                f"'{plan['Plan']['Name']}' plan has been downloaded to {cache_path}.json"
             )
 
 

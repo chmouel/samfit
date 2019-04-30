@@ -48,6 +48,12 @@ def parse_args():
     )
 
     parser.add_argument(
+        '--tr-password',
+        type=str,
+        help="Trainerroad password",
+    )
+
+    parser.add_argument(
         '--user-cycling-ftp',
         type=int,
         default=config.USER_FTP,
