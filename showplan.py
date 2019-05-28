@@ -36,15 +36,29 @@ def convertTreshold(wtype, percent, run_pace, swim_pace, ftp):
         return round(ftp * percent / 100)
 
 
-def show_workout(args, workout, colorize=True, extranewlines=False):
-    emoji = '🚴'
+def show_workout(args,
+                 workout,
+                 colorize=True,
+                 showtss=True,
+                 extranewlines=False):
     if config.TP_TYPE[workout['workoutTypeValueId']] == 'Running':
         emoji = '🏃'
+    elif config.TP_TYPE[workout['workoutTypeValueId']] == 'Cycling':
+        emoji = '🚴'
     elif config.TP_TYPE[workout['workoutTypeValueId']] == 'Swim':
         emoji = '🏊'
+    elif config.TP_TYPE[workout['workoutTypeValueId']] in ('Other', 'Note'):
+        emoji = '📝'
+    elif config.TP_TYPE[workout['workoutTypeValueId']] == 'Rest':
+        emoji = '😴🛌💤'
+    elif config.TP_TYPE[workout['workoutTypeValueId']] == 'Strength':
+        emoji = '🏋️‍♂️'
+    else:
+        emoji = ''
     title = f"{emoji}"
 
     title += f"{workout['title']}"
+
     if workout.get('structure') and len(workout['structure']['structure']) > 1:
         if 'end' in workout['structure']['structure'][-1]:
             total_time = utils.secondsToText(
@@ -53,7 +67,7 @@ def show_workout(args, workout, colorize=True, extranewlines=False):
             total_time = "As long as you want"
         title += f" {total_time}"
 
-    if workout['tssPlanned']:
+    if showtss and workout['tssPlanned']:
         title += f" - TSS: {round(workout['tssPlanned'])}"
     title += "\n"
     if extranewlines:

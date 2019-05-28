@@ -173,7 +173,11 @@ def calendar_workouts_ical(args):
                     "description"].replace("\r", "") or ""
 
                 title, pp = showplan.show_workout(
-                    args, current, colorize=False, extranewlines=True)
+                    args,
+                    current,
+                    colorize=False,
+                    showtss=False,
+                    extranewlines=True)
                 event.name = title or ""
                 if pp:
                     event.description += "\nExercises:\n\n" + pp.replace(
