@@ -37,17 +37,15 @@ def convertTreshold(wtype, percent, run_pace, swim_pace, ftp):
 
 
 def show_workout(args, workout, colorize=True, extranewlines=False):
-    if not workout['structure'] or 'structure' not in workout['structure']:
-        return (None, None)
     emoji = '🚴'
     if config.TP_TYPE[workout['workoutTypeValueId']] == 'Running':
         emoji = '🏃'
     elif config.TP_TYPE[workout['workoutTypeValueId']] == 'Swim':
         emoji = '🏊'
-    title = f"* {emoji}"
+    title = f"{emoji}"
 
     title += f"{workout['title']}"
-    if len(workout['structure']['structure']) > 1:
+    if workout.get('structure') and len(workout['structure']['structure']) > 1:
         if 'end' in workout['structure']['structure'][-1]:
             total_time = utils.secondsToText(
                 workout['structure']['structure'][-1]['end'])
@@ -60,7 +58,11 @@ def show_workout(args, workout, colorize=True, extranewlines=False):
     title += "\n"
     if extranewlines:
         title += "\n"
+
     title = utils.colourText(title, 'title', colorize=colorize)
+
+    if not workout.get('structure'):
+        return (title, None)
 
     ret = ''
     for structure in workout['structure']['structure']:
@@ -212,7 +214,7 @@ def show_plan(args):
                 title, pw = show_workout(args, w)
 
                 if title and pw:
-                    week_str += "\n" + title + "\n" + pw + "\n"
+                    week_str += "\n* " + title + "\n" + pw + "\n"
                 else:
                     tt = config.TP_TYPE[int(w['workoutTypeValueId'])]
                     emoji = ''
