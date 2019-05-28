@@ -36,6 +36,7 @@ TP_TYPE = {
     1: 'Swim',
     2: 'Cycling',
     3: 'Running',
+    4: 'Brick',
     7: 'Rest',
     9: 'Strength',
 }
@@ -43,7 +44,7 @@ TP_TYPE = {
 ACTIVE_CADENCE_MIN = 95
 ACTIVE_CADENCE_MAX = 105
 
-USER_FTP = 254
+USER_FTP = 250
 USER_RUN_PACE = "4'15"
 USER_SWIM_PACE = "2'20"
 
