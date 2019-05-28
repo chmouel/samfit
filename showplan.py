@@ -68,8 +68,9 @@ def show_workout(args, workout, colorize=True, extranewlines=False):
         #     ret += "("
         for step in structure['steps']:
             st = ''
-            median = (step['targets'][0]['minValue'] +
-                      step['targets'][0]['maxValue']) / 2
+            maxvalue = step['targets'][0].get('maxValue',
+                                              step['targets'][0]['minValue'])
+            median = (step['targets'][0]['minValue'] + maxvalue) / 2
             color = ''
             if step['intensityClass'] == "warmUp":
                 s = "Warm Up for"
