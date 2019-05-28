@@ -36,32 +36,32 @@ def convertTreshold(wtype, percent, run_pace, swim_pace, ftp):
 
 
 def show_workout(args, workout, colorize=True, extranewlines=False):
-    ret = ''
     if not workout['structure'] or 'structure' not in workout['structure']:
-        return
+        return (None, None)
     emoji = '🚴'
     if config.TP_TYPE[workout['workoutTypeValueId']] == 'Running':
         emoji = '🏃'
     elif config.TP_TYPE[workout['workoutTypeValueId']] == 'Swim':
         emoji = '🏊'
-    title = f"* {emoji} "
+    title = f"* {emoji}"
 
+    title += f"{workout['title']}"
     if len(workout['structure']['structure']) > 1:
         if 'end' in workout['structure']['structure'][-1]:
             total_time = utils.secondsToText(
                 workout['structure']['structure'][-1]['end'])
         else:
             total_time = "As long as you want"
-        title += f"{total_time} "
+        title += f" {total_time}"
 
-    title += f"{workout['title']}"
     if workout['tssPlanned']:
         title += f" - TSS: {round(workout['tssPlanned'])}"
     title += "\n"
     if extranewlines:
         title += "\n"
-    ret += utils.colourText(title, 'title', colorize=colorize)
+    title = utils.colourText(title, 'title', colorize=colorize)
 
+    ret = ''
     for structure in workout['structure']['structure']:
         ret += "  - "
         if structure['type'] == 'repetition' and  \
@@ -130,7 +130,7 @@ def show_workout(args, workout, colorize=True, extranewlines=False):
         ret += "\n"
         if extranewlines:
             ret += "\n"
-    return ret
+    return (title, ret)
 
 
 def show_plan(args):
@@ -208,9 +208,10 @@ def show_plan(args):
                                                config.TP_OTHER_TYPE_ID):
                     continue
 
-                pw = show_workout(args, w)
-                if pw:
-                    week_str += "\n" + pw + "\n"
+                title, pw = show_workout(args, w)
+
+                if title and pw:
+                    week_str += "\n" + title + "\n" + pw + "\n"
                 else:
                     tt = config.TP_TYPE[int(w['workoutTypeValueId'])]
                     emoji = ''

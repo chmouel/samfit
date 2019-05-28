@@ -164,19 +164,17 @@ def calendar_workouts_ical(args):
 
             for current in week["Workouts"][day]:
                 event = ics.Event()
-                event.name = current["title"] and current["title"] or ""
 
                 if current["totalTimePlanned"]:
-                    event.name += " " + utils.secondsToText(
-                        current["totalTimePlanned"] * (60 * 60))
                     event.duration = datetime.timedelta(
                         seconds=(current["totalTimePlanned"] * (60 * 60)))
 
                 event.description = current["description"] and current[
                     "description"].replace("\r", "") or ""
 
-                pp = showplan.show_workout(
+                title, pp = showplan.show_workout(
                     args, current, colorize=False, extranewlines=True)
+                event.name = title or ""
                 if pp:
                     event.description += "\nExercises:\n\n" + pp.replace(
                         "\r", "\n")
