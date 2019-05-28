@@ -9,10 +9,11 @@ import dateutil.parser as dtparser
 
 def convert_pace_to_seconds(pace):
     if "'" in pace:
-        l = "'"
+        quote = "'"
     elif ":" in pace:
-        l = ":"
-    return (int(pace[:pace.find(l)]) * 60) + int(pace[pace.find(l) + 1:])
+        quote = ":"
+    return (int(pace[:pace.find(quote)]) * 60) + int(
+        pace[pace.find(quote) + 1:])
 
 
 def convert_seconds_to_pace(seconds):
