@@ -20,6 +20,8 @@ import gzip
 
 import config
 
+import humanfriendly
+
 
 def get_password_from_osx(service, account):
     return subprocess.Popen([
@@ -74,41 +76,8 @@ def ppt(ss, ppt='-', ll=None):
     return ret
 
 
-def secondsToText(amount, units='s'):
-    INTERVALS = [(lambda mlsec: divmod(mlsec, 1000), 'ms'),
-                 (lambda seconds: divmod(seconds, 60), 's'),
-                 (lambda minutes: divmod(minutes, 60), 'm'),
-                 (lambda hours: divmod(hours, 24), 'h'),
-                 (lambda days: divmod(days, 7), 'D'),
-                 (lambda weeks: divmod(weeks, 4), 'W'),
-                 (lambda years: divmod(years, 12), 'M'),
-                 (lambda decades: divmod(decades, 10), 'Y')]
-
-    for index_start, (interval, unit) in enumerate(INTERVALS):
-        if unit == units:
-            break
-
-    amount_abrev = []
-    last_index = 0
-    amount_temp = amount
-    for index, (formula,
-                abrev) in enumerate(INTERVALS[index_start:len(INTERVALS)]):
-        divmod_result = formula(amount_temp)
-        amount_temp = divmod_result[0]
-        amount_abrev.append((divmod_result[1], abrev))
-        if divmod_result[1] > 0:
-            last_index = index
-    amount_abrev_partial = amount_abrev[0:last_index + 1]
-    amount_abrev_partial.reverse()
-
-    final_string = ''
-    for amount, abrev in amount_abrev_partial:
-        if amount != 0:
-            final_string += str(amount) + abrev + ''
-    if len(final_string) > 3:
-        return final_string[0:-1]
-    else:
-        return final_string
+def secondsToText(amount):
+    return humanfriendly.format_timespan(amount)
 
 
 def colourText(text, color, colorize=True):
