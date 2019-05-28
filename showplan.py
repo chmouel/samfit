@@ -47,11 +47,17 @@ def show_workout(args, workout, colorize=True, extranewlines=False):
     title = f"* {emoji} "
 
     if len(workout['structure']['structure']) > 1:
-        total_time = utils.secondsToText(
-            workout['structure']['structure'][-1]['end'])
+        if 'end' in workout['structure']['structure'][-1]:
+            total_time = utils.secondsToText(
+                workout['structure']['structure'][-1]['end'])
+        else:
+            total_time = "As long as you want"
         title += f"{total_time} "
 
-    title += f"{workout['title']} - TSS: {round(workout['tssPlanned'])}\n"
+    title += f"{workout['title']}"
+    if workout['tssPlanned']:
+        title += f" - TSS: {round(workout['tssPlanned'])}"
+    title += "\n"
     if extranewlines:
         title += "\n"
     ret += utils.colourText(title, 'title', colorize=colorize)
