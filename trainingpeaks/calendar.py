@@ -112,7 +112,8 @@ def create_calendar_other(
 
 
 def build_workout(current, workout, workoutdate):
-    if not workout["title"]:
+    # check if it's already done or if it doesnt have title, ignore those.
+    if not workout["title"] or workout["distance"]:
         return current
 
     day = workoutdate.strftime("%A")

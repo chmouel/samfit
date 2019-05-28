@@ -16,6 +16,7 @@ import calendar
 import datetime
 import dateutil.parser as parser
 import fcntl
+import getpass
 import os
 import requests
 import tempfile
@@ -112,13 +113,38 @@ class TRSession(object):
         return self.session.get('https://www.trainerroad.com/api' + url).json()
 
 
-def get_session():
+def get_session(args):
     global SESSION
     if SESSION:
         return SESSION
-    password = utils.get_password_from_osx("chmouel", "trainerroad")
-    SESSION = TRSession(config.TR_USERNAME, password)
+    password = args.tr_password or utils.get_password_from_osx(
+        "trainerroad", getpass.getuser())
+    username = args.tr_user or config.TR_USERNAME
+    SESSION = TRSession(username, password)
     return SESSION
+
+
+def get_plan(args):
+    plan_number = args.plan_number
+
+    for plan_number in args.plan_number:
+
+        cache_path = os.path.join(config.BASE_DIR, "plans",
+                                  f"plan-{plan_number}")
+
+        tr = get_session(args)
+        plan = utils.get_or_cache(
+            tr.get,
+            f"/plans/{plan_number}",
+            cache_path,
+            cache=False,
+        )
+        if 'ExceptionMessage' in plan:
+            print(f"Could not find plan {plan_number}")
+        else:
+            print(
+                f"'{plan['Plan']['Name']}' plan has been downloaded to {cache_path}.json"
+            )
 
 
 def parse_plans(args):
@@ -131,7 +157,7 @@ def parse_plans(args):
             "%s don't start on a monday" % (start_date.today()))
 
     cursor_date = start_date - datetime.timedelta(days=1)
-    tr = get_session()
+    tr = get_session(args)
     plan = utils.get_or_cache(
         tr.get,
         f"/plans/{plan_number}",
@@ -175,7 +201,13 @@ Hours Per Week: {plan['HoursPerWeek']}
 
             ret[cursor_date] = [
                 workouts[x['Workout']['Name']] for x in week[day]
+                if x['Workout']['Name'] in workouts
             ]
+            for x in week[day]:
+                if not x['Workout']['Name'] in workouts:
+                    print(
+                        f"{x['Workout']['Name']} has been skipped cause not found in library"
+                    )
 
     for date in ret:
         if type(ret[date]) is dict:  # NOTE: this is a note

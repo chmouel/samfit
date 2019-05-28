@@ -19,8 +19,10 @@ import sys
 import trainingpeaks.library as tplib
 import trainingpeaks.calendar as tpcal
 import traineroad
+import traineroad_plan_md
 import config
 import showplan
+import zwift
 
 
 def parse_args():
@@ -44,6 +46,12 @@ def parse_args():
         type=str,
         default=config.TR_USERNAME,
         help="Trainerroad username",
+    )
+
+    parser.add_argument(
+        '--tr-password',
+        type=str,
+        help="Trainerroad password",
     )
 
     parser.add_argument(
@@ -231,6 +239,22 @@ def parse_args():
         help="Don't do caching when getting workouts",
     )
 
+    zwift_generate_zwo = mainparser.add_parser(
+        'zwift_generate_zwo', help="Generate zwift workouts from activity")
+
+    zwift_generate_zwo.add_argument(
+        '--output_dir',
+        type=str,
+        help="Output Directory for zwift files",
+    )
+
+    zwift_generate_zwo.add_argument(
+        'workout',
+        type=str,
+        nargs="+",
+        help="Workout file name or all to get everything",
+    )
+
     tp_import_tr_workouts = mainparser.add_parser(
         'tp_import_tr_workouts', help="Import all TR workouts in TP libraries")
 
@@ -246,6 +270,37 @@ def parse_args():
         type=str,
         default="TrainerRoad",
         help="The library name where to upload the workout we want",
+    )
+
+    tr_generate_md = mainparser.add_parser(
+        'tr_generate_md', help="Generate TR Plan in markdown")
+
+    tr_generate_md.add_argument(
+        '--markdown-dir',
+        required=True,
+        type=str,
+        help="Document dire where we generate the markdown file",
+    )
+
+    tr_generate_md.add_argument(
+        '-p',
+        '--plan-number',
+        required=True,
+        nargs="+",
+        type=str,
+        help="Plan number",
+    )
+
+    tr_get_plan = mainparser.add_parser(
+        'tr_get_plan', help="Get TR Plan and dump it in the cache")
+
+    tr_get_plan.add_argument(
+        '-p',
+        '--plan-number',
+        required=True,
+        nargs="+",
+        type=str,
+        help="Plan number",
     )
 
     tr_plan_to_tp = mainparser.add_parser(
@@ -290,6 +345,12 @@ def main(arguments):
     if args.action == "tr_plan_to_tp":
         return traineroad.parse_plans(args)
 
+    if args.action == "tr_get_plan":
+        return traineroad.get_plan(args)
+
+    if args.action == "tr_generate_md":
+        return traineroad_plan_md.generate(args)
+
     if args.action == "tp_get_calendar_workouts":
         return tpcal.get_calendar_workouts(args)
 
@@ -304,6 +365,9 @@ def main(arguments):
 
     if args.action == "show_plan":
         return showplan.show_plan(args)
+
+    if args.action == "zwift_generate_zwo":
+        return zwift.generate_zwo(args)
 
     parser.print_help()
 

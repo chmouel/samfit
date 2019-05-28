@@ -16,6 +16,7 @@ import os
 
 TR_USERNAME = 'samfit'
 TP_USERNAME = 'chmouel'
+
 if os.path.exists(os.path.expanduser("~/Work/samfit")):
     BASE_DIR = os.path.expanduser("~/Work/samfit")
 else:
@@ -42,8 +43,8 @@ TP_TYPE = {
 ACTIVE_CADENCE_MIN = 95
 ACTIVE_CADENCE_MAX = 105
 
-USER_FTP = 245
-USER_RUN_PACE = "4'25"
+USER_FTP = 254
+USER_RUN_PACE = "4'15"
 USER_SWIM_PACE = "2'20"
 
 # In osx keychain if we don't want to pass the password in clears
