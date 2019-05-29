@@ -21,7 +21,7 @@ import trainingpeaks.calendar as tpcal
 import traineroad
 import traineroad_plan_md
 import config
-import showplan
+import plans
 import zwift
 
 
@@ -364,7 +364,7 @@ def main(arguments):
         return tplib.add_cadence_plan(args)
 
     if args.action == "show_plan":
-        return showplan.show_plan(args)
+        return plans.show_plan(args)
 
     if args.action == "zwift_generate_zwo":
         return zwift.generate_zwo(args)

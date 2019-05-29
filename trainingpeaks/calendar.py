@@ -27,7 +27,7 @@ import ics
 import config
 import exceptions
 import utils
-import showplan
+import plans
 import trainingpeaks.session as tpsess
 import trainingpeaks.user as tpuser
 
@@ -172,7 +172,7 @@ def calendar_workouts_ical(args):
                 event.description = current["description"] and current[
                     "description"].replace("\r", "") or ""
 
-                title, pp = showplan.show_workout(
+                title, pp = plans.show_workout(
                     args,
                     current,
                     colorize=False,
