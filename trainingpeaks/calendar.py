@@ -163,38 +163,16 @@ def calendar_workouts_ical(args):
                 continue
 
             for current in week["Workouts"][day]:
-                event = ics.Event()
-
-                if current["totalTimePlanned"]:
-                    event.duration = datetime.timedelta(
-                        seconds=(current["totalTimePlanned"] * (60 * 60)))
-
-                event.description = current["description"] and current[
-                    "description"].replace("\r", "") or ""
-
-                title, pp = plans.show_workout(
-                    args,
-                    current,
-                    colorize=False,
-                    showtss=False,
-                    extranewlines=True)
-                event.name = title or ""
-                if pp:
-                    event.description += "\nExercises:\n\n" + pp.replace(
-                        "\r", "\n")
-
-                if current["coachComments"]:
-                    event.description += "\n\nCommentaire du Coach:\n"
-                    event.description += current["coachComments"].replace(
-                        "\r", "\n")
-
-                event.begin = cursor_date
-                if current["totalTimePlanned"]:
-                    cursor_date = cursor_date + datetime.timedelta(
-                        minutes=30) + datetime.timedelta(
-                            seconds=current["totalTimePlanned"] * (60 * 60))
+                event = generate_event(current, args, cursor_date)
                 events.append(event)
 
+    output = generate_ical(args, events)
+    open(ical_file, "w").write(output)
+    tmpfile and os.remove(tmpfile)
+    print(f"Generated iCS Calendar to: {ical_file}")
+
+
+def generate_ical(args, events):
     @ics.Calendar._outputs
     def o_custom(calendar, container):
         if args.calendar_title:
@@ -202,10 +180,36 @@ def calendar_workouts_ical(args):
             container.append(f"X-WR-CALDESC: Road to {args.calendar_title}")
         container.append(f"X-WR-TIMEZONE: {config.TIME_ZONE}")
 
-    output = str(ics.Calendar(events=events))
-    print(f"Generated iCS Calendar to: {ical_file}")
-    open(ical_file, "w").write(output)
-    tmpfile and os.remove(tmpfile)
+    return str(ics.Calendar(events=events))
+
+
+def generate_event(current, args, cursor_date):
+    event = ics.Event()
+
+    if current["totalTimePlanned"]:
+        event.duration = datetime.timedelta(
+            seconds=(current["totalTimePlanned"] * (60 * 60)))
+
+    event.description = current["description"] and current[
+        "description"].replace("\r", "") or ""
+
+    title, pp = plans.show_workout(
+        args, current, colorize=False, showtss=False, extranewlines=True)
+    event.name = title or ""
+    if pp:
+        event.description += "\nExercises:\n\n" + pp.replace("\r", "\n")
+
+    if current["coachComments"]:
+        event.description += "\n\nCommentaire du Coach:\n"
+        event.description += current["coachComments"].replace("\r", "\n")
+
+    event.begin = cursor_date
+    if current["totalTimePlanned"]:
+        cursor_date = cursor_date + datetime.timedelta(
+            minutes=30) + datetime.timedelta(
+                seconds=current["totalTimePlanned"] * (60 * 60))
+
+    return event
 
 
 def get_calendar_workouts(args):

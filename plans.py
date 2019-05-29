@@ -6,6 +6,8 @@ import utils
 
 import dateutil.parser as dtparser
 
+import trainingpeaks.calendar as tpcal
+
 
 def convert_pace_to_seconds(pace):
     if "'" in pace:
@@ -258,3 +260,31 @@ def show_plan(args):
         print("Nothing to do today 💤 Zzz🎮🍸👩‍❤️‍👨")
     elif ret:
         print(ret)
+
+
+def plan_to_ical(args):
+    events = []
+    cursor_date = dtparser.parse(args.start_date)
+    cursor_date = cursor_date - datetime.timedelta(days=1)
+
+    plan = utils.get_filej(args.plan_name)
+    if not plan:
+        raise Exception(f"Cannot find plan: {args.plan_name}")
+
+    for week in plan:
+        for day in list(calendar.day_name):
+            cursor_date = cursor_date + datetime.timedelta(days=1)
+            cursor_date = cursor_date.replace(hour=6, minute=0)
+
+            if day not in week["Workouts"] \
+               or not week["Workouts"][day]:  # empty
+                continue
+
+            daysw = week['Workouts'][day]
+            for current in daysw:
+                event = tpcal.generate_event(current, args, cursor_date)
+                events.append(event)
+
+    output = tpcal.generate_ical(args, events)
+    open(args.output_file, "w").write(output)
+    print(f"Generated iCS Calendar to: {args.output_file}")

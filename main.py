@@ -107,48 +107,31 @@ def parse_args():
         help="Rexgexp for Libraries",
     )
 
-    show_plan = mainparser.add_parser('show_plan', help="Show plan.")
-    show_plan.add_argument(
-        dest="plan_file",
+    plan_to_ical = mainparser.add_parser(
+        'plan_to_ical', help="Generate iCal from a plan.")
+
+    plan_to_ical.add_argument(
+        dest="plan_name",
         type=str,
-        help="Plan file",
+        help="Plan name",
     )
 
-    show_plan.add_argument(
-        '--start-date',
+    plan_to_ical.add_argument(
+        "calendar_title",
         type=str,
-        default=str(datetime.datetime.now()),
+        help="Calendar title",
+    )
+
+    plan_to_ical.add_argument(
+        dest="start_date",
+        type=str,
         help="Start Date",
     )
 
-    show_plan.add_argument(
-        '--date',
+    plan_to_ical.add_argument(
+        dest="output_file",
         type=str,
-        help="Show at this specific date",
-    )
-
-    show_plan.add_argument(
-        '--today',
-        '-t',
-        action='store_true',
-        default=False,
-        help="Show only today",
-    )
-
-    show_plan.add_argument(
-        '--week',
-        '-w',
-        action='store_true',
-        default=False,
-        help="Show only this week",
-    )
-
-    show_plan.add_argument(
-        '--description',
-        '-d',
-        action='store_true',
-        default=False,
-        help="Show description",
+        help="Output file",
     )
 
     tp_import_plan = mainparser.add_parser(
@@ -365,6 +348,9 @@ def main(arguments):
 
     if args.action == "show_plan":
         return plans.show_plan(args)
+
+    if args.action == "plan_to_ical":
+        return plans.plan_to_ical(args)
 
     if args.action == "zwift_generate_zwo":
         return zwift.generate_zwo(args)
