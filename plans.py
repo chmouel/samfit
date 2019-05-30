@@ -6,7 +6,7 @@ import utils
 
 import dateutil.parser as dtparser
 
-import trainingpeaks.calendar as tpcal
+import ical
 
 
 def convert_pace_to_seconds(pace):
@@ -282,9 +282,9 @@ def plan_to_ical(args):
 
             daysw = week['Workouts'][day]
             for current in daysw:
-                event = tpcal.generate_event(current, args, cursor_date)
+                event = ical.generate_event(current, args, cursor_date)
                 events.append(event)
 
-    output = tpcal.generate_ical(args, events)
+    output = ical.generate_ical(args, events)
     open(args.output_file, "w").write(output)
     print(f"Generated iCS Calendar to: {args.output_file}")
