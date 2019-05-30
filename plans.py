@@ -146,8 +146,6 @@ def show_workout(args,
             if structure['steps'][-1] != step:
                 ret += " / "
 
-        # if len(structure['steps']) > 1:
-        #     ret += ")"
         ret += "\n"
         if extranewlines:
             ret += "\n"
