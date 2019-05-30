@@ -49,7 +49,9 @@ def show_workout(args,
         emoji = '🚴'
     elif config.TP_TYPE[workout['workoutTypeValueId']] == 'Swim':
         emoji = '🏊'
-    elif config.TP_TYPE[workout['workoutTypeValueId']] in ('Other', 'Note'):
+    elif config.TP_TYPE[workout['workoutTypeValueId']] == 'Other':
+        emoji = '💡'
+    elif config.TP_TYPE[workout['workoutTypeValueId']] == 'Note':
         emoji = '📝'
     elif config.TP_TYPE[workout['workoutTypeValueId']] == 'Rest':
         emoji = '😴🛌💤'
