@@ -43,22 +43,12 @@ def show_workout(args,
                  colorize=True,
                  showtss=True,
                  extranewlines=False):
-    if config.TP_TYPE[workout['workoutTypeValueId']] == 'Running':
-        emoji = '🏃'
-    elif config.TP_TYPE[workout['workoutTypeValueId']] == 'Cycling':
-        emoji = '🚴'
-    elif config.TP_TYPE[workout['workoutTypeValueId']] == 'Swim':
-        emoji = '🏊'
-    elif config.TP_TYPE[workout['workoutTypeValueId']] == 'Other':
-        emoji = '💡'
-    elif config.TP_TYPE[workout['workoutTypeValueId']] == 'Note':
-        emoji = '📝'
-    elif config.TP_TYPE[workout['workoutTypeValueId']] == 'Rest':
-        emoji = '😴🛌💤'
-    elif config.TP_TYPE[workout['workoutTypeValueId']] == 'Strength':
-        emoji = '🏋️‍♂️'
+    if config.TP_TYPE[
+            workout['workoutTypeValueId']] in config.TP_TYPE_EMOJI_MAP:
+        emoji = config.TP_TYPE_EMOJI_MAP[config.TP_TYPE[
+            workout['workoutTypeValueId']]]
     else:
-        emoji = ''
+        emoji = '<0001f3fc><200d>♂<fe0f>'
     title = f"{emoji}"
 
     title += f"{workout['title']}"
@@ -240,6 +230,7 @@ def show_plan(args):
                         emoji = '🏋️‍'
 
                     week_str += f"\n* {emoji} {tt}: {w['title']}\n\n"
+
                 if args.description and w['description']:
                     week_str += utils.colourText("Description:",
                                                  "yellow") + "\n" + "\n"
@@ -257,7 +248,7 @@ def show_plan(args):
         ret += week_str
 
     if args.today and not ret:
-        print("Nothing to do today 💤 Zzz🎮🍸👩‍❤️‍👨")
+        print("Nothing to do today {config.TP_TYPE_EMOJI_MAP['Rest]}")
     elif ret:
         print(ret)
 

@@ -41,6 +41,17 @@ TP_TYPE = {
     9: 'Strength',
 }
 
+TP_TYPE_EMOJI_MAP = {
+    'Running': '🏃',
+    'Cycling': '🚴',
+    'Swim': '🏊',
+    'Note': '📝',
+    'Other': '💡',
+    'Rest': '💤 Zzz🎮🍸👩‍❤️‍👨',
+    'Strength': '🏋️‍♂️',
+    'Brick': '<0001f9f1>'
+}
+
 ACTIVE_CADENCE_MIN = 95
 ACTIVE_CADENCE_MAX = 105
 
