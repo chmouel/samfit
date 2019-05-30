@@ -107,6 +107,50 @@ def parse_args():
         help="Rexgexp for Libraries",
     )
 
+    show_plan = mainparser.add_parser('show_plan', help="Show plan.")
+    show_plan.add_argument(
+        dest="plan_file",
+        type=str,
+        help="Plan file",
+    )
+
+    show_plan.add_argument(
+        '--start-date',
+        type=str,
+        default=str(datetime.datetime.now()),
+        help="Start Date",
+    )
+
+    show_plan.add_argument(
+        '--date',
+        type=str,
+        help="Show at this specific date",
+    )
+
+    show_plan.add_argument(
+        '--today',
+        '-t',
+        action='store_true',
+        default=False,
+        help="Show only today",
+    )
+
+    show_plan.add_argument(
+        '--week',
+        '-w',
+        action='store_true',
+        default=False,
+        help="Show only this week",
+    )
+
+    show_plan.add_argument(
+        '--description',
+        '-d',
+        action='store_true',
+        default=False,
+        help="Show description",
+    )
+
     plan_to_ical = mainparser.add_parser(
         'plan_to_ical', help="Generate iCal from a plan.")
 
