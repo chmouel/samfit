@@ -152,8 +152,8 @@ def parse_args():
     )
 
     show_plan.add_argument(
-        '--description',
-        '-d',
+        '--no-description',
+        '-D',
         action='store_true',
         default=False,
         help="Show description",

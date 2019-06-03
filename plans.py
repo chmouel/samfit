@@ -233,14 +233,14 @@ def show_plan(args):
 
                     week_str += f"\n* {emoji} {tt}: {w['title']}\n\n"
 
-                if args.description and w['description']:
+                if not args.no_description and w['description']:
                     week_str += utils.colourText(
                         "Description:", "yellow",
                         colorize=not args.no_color) + "\n" + "\n"
                     week_str += utils.addSpaceToString(
                         w['description']) + "\n\n"
 
-                if w['coachComments']:
+                if not args.no_description and w['coachComments']:
                     week_str += utils.colourText(
                         "Coach Comment:", "yellow",
                         colorize=not args.no_color) + "\n"
