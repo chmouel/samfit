@@ -17,6 +17,7 @@ import os
 import json
 import subprocess
 import gzip
+import textwrap
 
 import config
 
@@ -105,10 +106,14 @@ def colourText(text, color, colorize=True):
     return s
 
 
-def addSpaceToString(s, spaces=2):
+def addSpaceToString(s, spaces=2, wrap=True):
     ret = []
     longest = 0
     for x in s.split("\r\n"):
         longest = len(x) > longest and len(x)
         ret.append(f"  {x}")
+
+    if wrap:
+        ret = textwrap.wrap("\n".join(ret), width=100)
+
     return "\n".join(ret)
