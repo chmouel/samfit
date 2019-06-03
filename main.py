@@ -115,6 +115,14 @@ def parse_args():
     )
 
     show_plan.add_argument(
+        '--no-color',
+        '-N',
+        default=False,
+        action='store_true',
+        help="Don't store colours",
+    )
+
+    show_plan.add_argument(
         '--start-date',
         type=str,
         default=str(datetime.datetime.now()),

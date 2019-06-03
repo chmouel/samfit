@@ -54,6 +54,7 @@ def show_workout(args,
     title += f"{workout['title']}"
 
     if workout.get('structure') and len(workout['structure']['structure']) > 1:
+        # This is buggy when we have workout by distance
         if 'end' in workout['structure']['structure'][-1]:
             total_time = utils.secondsToText(
                 workout['structure']['structure'][-1]['end'])
@@ -203,8 +204,9 @@ def show_plan(args):
                 color = 'cyan_italic'
             else:
                 s = f"\n{cursor_date.strftime('%A %d %b')}: {numberOfWorkouts} Workout"
-                color = "cyan_surligned"
-            s = utils.colourText(s, color)
+                color = 'cyan_surligned'
+
+            s = utils.colourText(s, color, colorize=not args.no_color)
             week_str += s + "\n"
 
             for w in daysw:
@@ -217,7 +219,7 @@ def show_plan(args):
                                                config.TP_OTHER_TYPE_ID):
                     continue
 
-                title, pw = show_workout(args, w)
+                title, pw = show_workout(args, w, colorize=not args.no_color)
 
                 if title and pw:
                     week_str += "\n* " + title + "\n" + pw + "\n"
@@ -232,14 +234,16 @@ def show_plan(args):
                     week_str += f"\n* {emoji} {tt}: {w['title']}\n\n"
 
                 if args.description and w['description']:
-                    week_str += utils.colourText("Description:",
-                                                 "yellow") + "\n" + "\n"
+                    week_str += utils.colourText(
+                        "Description:", "yellow",
+                        colorize=not args.no_color) + "\n" + "\n"
                     week_str += utils.addSpaceToString(
                         w['description']) + "\n\n"
 
                 if w['coachComments']:
-                    week_str += utils.colourText("Coach Comment:",
-                                                 "yellow") + "\n"
+                    week_str += utils.colourText(
+                        "Coach Comment:", "yellow",
+                        colorize=not args.no_color) + "\n"
                     week_str += utils.addSpaceToString(
                         w['coachComments']) + "\n\n"
 
