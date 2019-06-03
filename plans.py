@@ -215,13 +215,11 @@ def show_plan(args):
                     numberOfWorkouts += 1
 
             if numberOfWorkouts == 0:
-                s = f"\n* {cursor_date.strftime('%A %d %b')}: \n\tRest Day 😴🛌💤"
-                color = 'cyan_italic'
+                s = f"\n# {cursor_date.strftime('%A %d %b')}: Rest Day 😴🛌💤"
             else:
-                s = f"\n{cursor_date.strftime('%A %d %b')}: {numberOfWorkouts} Workout"
-                color = 'cyan_surligned'
+                s = f"\n# {cursor_date.strftime('%A %d %b')}: {numberOfWorkouts} Workout"
 
-            s = utils.colourText(s, color, colorize=not args.no_color)
+            s = utils.colourText(s, 'white', colorize=not args.no_color)
             week_str += s + "\n"
 
             for w in daysw:
