@@ -7,6 +7,7 @@ import utils
 import dateutil.parser as dtparser
 
 import ical
+import humanfriendly
 
 
 def convert_pace_to_seconds(pace):
@@ -53,11 +54,21 @@ def show_workout(args,
 
     title += f"{workout['title']}"
 
+    if workout.get('structure') and workout['structure'][
+            'primaryLengthMetric'] == 'distance':
+        wtype = 'distance'
+    elif workout.get('structure') and workout['structure'][
+            'primaryLengthMetric'] == 'duration':
+        wtype = 'duration'
+
     if workout.get('structure') and len(workout['structure']['structure']) > 1:
-        # This is buggy when we have workout by distance
         if 'end' in workout['structure']['structure'][-1]:
-            total_time = utils.secondsToText(
-                workout['structure']['structure'][-1]['end'])
+            if wtype == 'duration':
+                total_time = utils.secondsToText(
+                    workout['structure']['structure'][-1]['end'])
+            elif wtype == 'distance':
+                total_time = humanfriendly.format_length(
+                    workout['structure']['structure'][-1]['end'])
         else:
             total_time = "As long as you want"
         title += f" {total_time}"
@@ -121,7 +132,11 @@ def show_workout(args,
             else:
                 s = step['intensityClass']
             st += f"{s} "
-            st += utils.secondsToText(step['length']['value']) + " "
+            if wtype == 'duration':
+                st += utils.secondsToText(step['length']['value']) + " "
+            elif wtype == 'distance':
+                st += humanfriendly.format_length(
+                    step['length']['value']) + " "
             pace = convertTreshold(workout['workoutTypeValueId'],
                                    round(median), args.user_run_pace,
                                    args.user_swim_pace, args.user_cycling_ftp)
