@@ -1,6 +1,7 @@
 import calendar
 import datetime
 
+import calc
 import config
 import utils
 
@@ -101,6 +102,10 @@ def show_workout(args,
                                               step['targets'][0]['minValue'])
             median = (step['targets'][0]['minValue'] + maxvalue) / 2
             color = ''
+            pace = convertTreshold(workout['workoutTypeValueId'],
+                                   round(median), args.user_run_pace,
+                                   args.user_swim_pace, args.user_cycling_ftp)
+
             if step['intensityClass'] == "warmUp":
                 s = "Warm Up for"
                 color = 'white_italic'
@@ -137,12 +142,14 @@ def show_workout(args,
             elif wtype == 'distance':
                 st += humanfriendly.format_length(
                     step['length']['value']) + " "
-            pace = convertTreshold(workout['workoutTypeValueId'],
-                                   round(median), args.user_run_pace,
-                                   args.user_swim_pace, args.user_cycling_ftp)
             st += f"at {pace}"
             if config.TP_TYPE[workout['workoutTypeValueId']] == 'Cycling':
                 st += f"W‍"
+
+            if config.TP_TYPE[workout[
+                    'workoutTypeValueId']] == 'Running' and wtype == 'duration':
+                st += " for " + humanfriendly.format_length(
+                    int(calc.timePace2distance(step['length']['value'], pace)))
 
             if median > 0:
                 st += " [" + str(round(median)) + "%]"
