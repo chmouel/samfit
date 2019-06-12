@@ -106,7 +106,7 @@ def colourText(text, color, colorize=True):
     return s
 
 
-def addSpaceToString(s, spaces=2, wrap=True):
+def addSpaceToString(s, spaces=2, wrap=False):
     ret = []
     longest = 0
     for x in s.split("\r\n"):
