@@ -20,6 +20,23 @@ import utils
 import sys
 
 
+def _garmin_get_pace(step, workout, args):
+    maxvalue = step['targets'][0].get('maxValue',
+                                      step['targets'][0]['minValue'])
+    gmin = calc.speed2centimetersms(
+        calc.pace2speed(
+            calc.convertTreshold(workout['workoutTypeValueId'],
+                                 step['targets'][0]['minValue'],
+                                 args.user_run_pace, args.user_swim_pace,
+                                 args.user_cycling_ftp)))
+    gmax = calc.speed2centimetersms(
+        calc.pace2speed(
+            calc.convertTreshold(workout['workoutTypeValueId'], maxvalue,
+                                 args.user_run_pace, args.user_swim_pace,
+                                 args.user_cycling_ftp)))
+    return gmin, gmax
+
+
 def _add_step(step, workout, args, order):
     if step['intensityClass'] == 'warmUp':
         stepTypeId = 1
@@ -34,22 +51,39 @@ def _add_step(step, workout, args, order):
         stepTypeId = 3
         stepTypeKey = "interval"
 
-    maxvalue = step['targets'][0].get('maxValue',
-                                      step['targets'][0]['minValue'])
-    gpacemin = calc.speed2centimetersms(
-        calc.pace2speed(
-            calc.convertTreshold(workout['workoutTypeValueId'],
-                                 step['targets'][0]['minValue'],
-                                 args.user_run_pace, args.user_swim_pace,
-                                 args.user_cycling_ftp)))
-    gpacemax = calc.speed2centimetersms(
-        calc.pace2speed(
-            calc.convertTreshold(workout['workoutTypeValueId'], maxvalue,
-                                 args.user_run_pace, args.user_swim_pace,
-                                 args.user_cycling_ftp)))
+    if workout['structure'][
+            'primaryIntensityMetric'] == 'percentOfThresholdPace':
+        gmin, gmax = _garmin_get_pace(step, workout, args)
+        targetType = {
+            "workoutTargetTypeId": 6,
+            "workoutTargetTypeKey": "pace.zone"
+        }
+        firststepdesc = "🏃 Run for at least " + utils.secondsToText(
+            step['length']['value']) + " and then press lap."
+    elif workout['structure']['primaryIntensityMetric'] == 'percentOfFtp':
+        maxvalue = step['targets'][0].get('maxValue',
+                                          step['targets'][0]['minValue'])
+        gmin = calc.convertTreshold(
+            workout['workoutTypeValueId'], step['targets'][0]['minValue'],
+            args.user_run_pace, args.user_swim_pace, args.user_cycling_ftp)
+        gmax = calc.convertTreshold(workout['workoutTypeValueId'], maxvalue,
+                                    args.user_run_pace, args.user_swim_pace,
+                                    args.user_cycling_ftp)
+        firststepdesc = "🚴 Cycle for at least " + utils.secondsToText(
+            step['length']['value']) + " and then press lap"
 
-    if gpacemin > gpacemax:
-        gpacemin, gpacemax = gpacemax, gpacemin
+        targetType = {
+            "workoutTargetTypeId": 2,
+            "workoutTargetTypeKey": "power.zone",
+            "displayOrder": 2
+        }
+    else:
+        print(
+            f"{workout['structure']['primaryIntensityMetric']} Not supported yet"
+        )
+        sys.exit(1)
+    if gmin > gmax:
+        gmin, gmax = gmax, gmin
 
     endCondition = {"conditionTypeKey": "time", "conditionTypeId": 2}
     endConditionValue = step['length']['value']
@@ -57,8 +91,7 @@ def _add_step(step, workout, args, order):
     if order == 1 and stepTypeKey == "warmup":
         endConditionValue = None
         endCondition = {"conditionTypeKey": "lap.button", "conditionTypeId": 1}
-        description = "🏃 Run for at least " + utils.secondsToText(
-            step['length']['value'])
+        description = firststepdesc
 
     return {
         "type": "ExecutableStepDTO",
@@ -75,19 +108,16 @@ def _add_step(step, workout, args, order):
         "endConditionValue": endConditionValue,
         "endConditionCompare": None,
         "endConditionZone": None,
-        "targetType": {
-            "workoutTargetTypeId": 6,  # TODO: CYCLING
-            "workoutTargetTypeKey": "pace.zone"  # TODO: CYCLING
-        },
-        "targetValueOne": gpacemin,
-        "targetValueTwo": gpacemax,
+        "targetType": targetType,
+        "targetValueOne": gmin,
+        "targetValueTwo": gmax,
         "zoneNumber": None,
     }
 
 
 def tpWorkoutGarmin(workout, tdd, args):
     atype = config.TP_TYPE[workout['workoutTypeValueId']]
-    if atype not in ('Running'):
+    if atype not in ('Running', 'Cycling'):
         return
 
     gtype = list(config.GARMIN_TYPE.keys())[list(
@@ -144,7 +174,6 @@ def tpWorkoutGarmin(workout, tdd, args):
             'workoutSteps': gsteps,
         }]
     }
-
     gops = garmin_connect.GarminOPS(args)
     all_workouts = gops.get_all_workouts()
     for gw in all_workouts:
