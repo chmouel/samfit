@@ -3,7 +3,7 @@ import datetime
 
 import calc
 import config
-import garmin
+import garmin_workout
 import utils
 
 import dateutil.parser as dtparser
@@ -176,7 +176,7 @@ def show_plan(args):
             elif args.sync_garmin_today and cursor_date.strftime(
                     "%Y%m%d") == tdd.strftime("%Y%m%d"):
                 for gw in week['Workouts'][day]:
-                    garmin.tpWorkoutGarmin(gw, tdd, args)
+                    garmin_workout.tpWorkoutGarmin(gw, tdd, args)
 
             if args.week and \
                (cursor_date.strftime("%Y%m%d") == tdd.strftime("%Y%m%d")):
