@@ -159,7 +159,7 @@ def parse_args():
         '--sync-garmin',
         action='store_true',
         default=False,
-        help="Sync Garmin (only for current day).",
+        help="Sync to Garmin.",
     )
 
     show_plan.add_argument(

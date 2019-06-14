@@ -115,20 +115,9 @@ def _add_step(step, workout, args, order):
     }
 
 
-def tpWorkoutGarmin(workout, tdd, args, gcnx):
-    atype = config.TP_TYPE[workout['workoutTypeValueId']]
-    if atype not in ('Running', 'Cycling'):
-        return
-    if not workout['structure']:  # TODO: notes
-        return
-
-    gtype = list(config.GARMIN_TYPE.keys())[list(
-        config.GARMIN_TYPE.values()).index(atype)]
-
-    title = f"{tdd.strftime('%A %d %b %Y')} - {workout['title']}"
-
-    gsteps = []
+def _steps(workout, args):
     order = 1
+    gsteps = []
     for structure in workout['structure']['structure']:
         gstep = {}
         if structure['type'] == 'repetition' and  \
@@ -157,6 +146,60 @@ def tpWorkoutGarmin(workout, tdd, args, gcnx):
                 gstep.update(_add_step(step, workout, args, order))
         gsteps.append(gstep)
         order += 1
+    return gsteps
+
+
+def tpWorkoutGarmin(workout, tdd, args, gcnx):
+    note = False
+    atype = config.TP_TYPE[workout['workoutTypeValueId']]
+    emoji = config.TP_TYPE_EMOJI_MAP[config.TP_TYPE[
+        workout['workoutTypeValueId']]]
+    title = f"{emoji} {tdd.strftime('%A %d %b %Y')} - {workout['title']}"
+
+    if atype not in ('Running', 'Cycling') or not workout['structure']:
+        duration = 0
+        gtype = 3
+        atype = "other"
+        gsteps = None
+
+        if workout['description']:
+            description = workout['description']
+            if workout['coachComments']:
+                description += f"\n{workout['coachComments']}"
+        elif workout['coachComments']:
+            description = workout['coachComments']
+        elif config.TP_TYPE[workout['workoutTypeValueId']] == 'Rest':
+            description = 'Rest Day 😴🛌💤'
+        else:
+            description = title
+
+        gsteps = [{
+            "type": "ExecutableStepDTO",
+            "stepOrder": 1,
+            "stepType": {
+                "stepTypeId": 7,
+                "stepTypeKey": "other"
+            },
+            "endCondition": {
+                "conditionTypeKey": "time",
+                "conditionTypeId": 2
+            },
+            "endConditionValue": 1800,  # ?? magic number??
+            "targetType": {
+                "workoutTargetTypeId": 1,
+                "workoutTargetTypeKey": "no.target"
+            },
+        }]
+
+    else:
+        gtype = list(config.GARMIN_TYPE.keys())[list(
+            config.GARMIN_TYPE.values()).index(atype)]
+        gsteps = _steps(workout, args)
+        description = workout['description']
+        if workout['structure']:
+            duration = workout['structure']['structure'][-1]['end']
+        else:
+            duration = 18000
 
     ret = {
         'sportType': {
@@ -164,11 +207,11 @@ def tpWorkoutGarmin(workout, tdd, args, gcnx):
             'sportTypeKey': atype.lower()
         },
         'estimatedDurationInSecs':
-        workout['structure']['structure'][-1]['end'],
+        duration,
         'workoutName':
         title,
         'description':
-        workout['description'],
+        description,
         'workoutSegments': [{
             'segmentOrder': 1,
             'sportType': {
@@ -178,7 +221,6 @@ def tpWorkoutGarmin(workout, tdd, args, gcnx):
             'workoutSteps': gsteps,
         }]
     }
-
     all_workouts = gcnx.get_all_workouts()
     for gw in all_workouts:
         if gw['workoutName'] == ret['workoutName']:
@@ -196,6 +238,9 @@ def tpWorkoutGarmin(workout, tdd, args, gcnx):
     import json
     jeez = json.dumps(ret)
     resp = gcnx.create_workout(jeez)
+    if 'workoutId' not in resp:
+        print(resp, workout)
+        return
     gcnx.schedule_workout(resp['workoutId'], tdd)
 
     print(

@@ -182,7 +182,7 @@ class GarminOPS(object):
         headers.update(extra_headers)
 
         # request not working :\
-        curl = f"curl -s '{url}' "
+        curl = f"curl -f --fail-early -s '{url}' "
         cookies = "-H 'Cookie: "
         for k, v in self.session.cookies.iteritems():
             cookies += f'{k}={v}; '
@@ -211,7 +211,10 @@ class GarminOPS(object):
         curl += "-X POST"
         retcode, output = subprocess.getstatusoutput(f'{curl}')
         if retcode != 0:
-            raise Exception(f"Error while adding garmin workout: {output}")
+            output = {
+                'errorcode': retcode,
+                'error': f"Error while adding garmin workout: {output}"
+            }
         return
 
     def schedule_workout(self, wid, date):
@@ -222,8 +225,11 @@ class GarminOPS(object):
         curl += f"--data-binary '{jeez}'"
         retcode, output = subprocess.getstatusoutput(f'{curl}')
         if retcode != 0:
-            raise Exception(f"Error while adding garmin workout: {output}")
-        return output
+            output = {
+                'errorcode': retcode,
+                'error': f"Error while adding garmin workout: {output}"
+            }
+        return
 
     def create_workout(self, jeez):
         curl = self._build_curl(
@@ -236,10 +242,12 @@ class GarminOPS(object):
         curl += f"--data @{fp.name}"
 
         retcode, output = subprocess.getstatusoutput(f'{curl}')
-        if retcode != 0:
-            raise Exception(f"Error while adding garmin workout: {output}")
-
         os.remove(fp.name)
+        if retcode != 0:
+            return {
+                'errorcode': retcode,
+                'error': f"Error while adding garmin workout: {output}"
+            }
         try:
             return json.loads(output)
         except (json.decoder.JSONDecodeError):
