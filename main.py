@@ -144,6 +144,13 @@ def parse_args():
     )
 
     show_plan.add_argument(
+        '--sync-garmin-today',
+        action='store_true',
+        default=False,
+        help="Sync today to garmin.",
+    )
+
+    show_plan.add_argument(
         '--week',
         '-w',
         action='store_true',

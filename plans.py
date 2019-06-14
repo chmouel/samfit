@@ -3,41 +3,13 @@ import datetime
 
 import calc
 import config
+import garmin
 import utils
 
 import dateutil.parser as dtparser
 
 import ical
 import humanfriendly
-
-
-def convert_pace_to_seconds(pace):
-    if "'" in pace:
-        quote = "'"
-    elif ":" in pace:
-        quote = ":"
-    return (int(pace[:pace.find(quote)]) * 60) + int(
-        pace[pace.find(quote) + 1:])
-
-
-def convert_seconds_to_pace(seconds):
-    sp = str(datetime.timedelta(seconds=seconds)).split(":")
-    sec = "%.2d" % int(sp[2][:sp[2].find(".")])
-    return f"{sp[1]}'{sec}"
-
-
-def convertTreshold(wtype, percent, run_pace, swim_pace, ftp):
-    if percent == 0:
-        return "still 🧘"
-
-    if config.TP_TYPE[wtype] == 'Running':
-        tresholds = convert_pace_to_seconds(run_pace)
-        return convert_seconds_to_pace(tresholds / percent * 100)
-    if config.TP_TYPE[wtype] == 'Swim':
-        tresholds = convert_pace_to_seconds(swim_pace)
-        return convert_seconds_to_pace(tresholds / percent * 100)
-    elif config.TP_TYPE[wtype] == 'Cycling':
-        return round(ftp * percent / 100)
 
 
 def show_workout(args,
@@ -102,9 +74,9 @@ def show_workout(args,
                                               step['targets'][0]['minValue'])
             median = (step['targets'][0]['minValue'] + maxvalue) / 2
             color = ''
-            pace = convertTreshold(workout['workoutTypeValueId'],
-                                   round(median), args.user_run_pace,
-                                   args.user_swim_pace, args.user_cycling_ftp)
+            pace = calc.convertTreshold(
+                workout['workoutTypeValueId'], median, args.user_run_pace,
+                args.user_swim_pace, args.user_cycling_ftp)
 
             if step['intensityClass'] == "warmUp":
                 s = "Warm Up for"
@@ -170,6 +142,9 @@ def show_plan(args):
     cursor_date = dtparser.parse(args.start_date)
     cursor_date = cursor_date - datetime.timedelta(days=1)
 
+    if args.sync_garmin_today:
+        args.today = True
+
     plan = utils.get_filej(args.plan_file)
     if not plan:
         raise Exception(f"Cannot find plan: {args.plan_file}")
@@ -198,6 +173,10 @@ def show_plan(args):
             if args.today and \
                (cursor_date.strftime("%Y%m%d") != tdd.strftime("%Y%m%d")):
                 continue
+            elif args.sync_garmin_today and cursor_date.strftime(
+                    "%Y%m%d") == tdd.strftime("%Y%m%d"):
+                for gw in week['Workouts'][day]:
+                    garmin.tpWorkoutGarmin(gw, tdd, args)
 
             if args.week and \
                (cursor_date.strftime("%Y%m%d") == tdd.strftime("%Y%m%d")):
@@ -269,6 +248,7 @@ def show_plan(args):
 
         if args.week and not print_week:
             continue
+
         ret += week_str
 
     if args.today and not ret:
