@@ -49,27 +49,27 @@ def _add_step(step, workout, args, order):
         gpacemin, gpacemax = gpacemax, gpacemin
 
     endCondition = {"conditionTypeKey": "time", "conditionTypeId": 2}
-    endConditionValue = step['length']['value'],
+    endConditionValue = step['length']['value']
+    description = None
     if order == 1 and stepTypeKey == "warmup":
         endConditionValue = None
         endCondition = {"conditionTypeKey": "lap.button", "conditionTypeId": 1}
+        description = "🏃 Run for at least " + utils.secondsToText(
+            step['length']['value'])
 
     return {
         "type": "ExecutableStepDTO",
         "stepId": None,
         "stepOrder": order,
         "childStepId": None,
-        "description": None,
+        "description": description,
         "stepType": {
             "stepTypeId": stepTypeId,
             "stepTypeKey": stepTypeKey
         },
-        "endCondition": {
-            "conditionTypeKey": "time",  # TODO
-            "conditionTypeId": 2  # TODO
-        },
+        "endCondition": endCondition,
         "preferredEndConditionUnit": None,
-        "endConditionValue": step['length']['value'],
+        "endConditionValue": endConditionValue,
         "endConditionCompare": None,
         "endConditionZone": None,
         "targetType": {
