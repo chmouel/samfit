@@ -142,7 +142,7 @@ def show_plan(args):
     cursor_date = dtparser.parse(args.start_date)
     cursor_date = cursor_date - datetime.timedelta(days=1)
 
-    if args.sync_garmin_today:
+    if args.sync_garmin:
         args.today = True
 
     plan = utils.get_filej(args.plan_file)
@@ -173,7 +173,7 @@ def show_plan(args):
             if args.today and \
                (cursor_date.strftime("%Y%m%d") != tdd.strftime("%Y%m%d")):
                 continue
-            elif args.sync_garmin_today and cursor_date.strftime(
+            elif args.sync_garmin and cursor_date.strftime(
                     "%Y%m%d") == tdd.strftime("%Y%m%d"):
                 for gw in week['Workouts'][day]:
                     garmin_workout.tpWorkoutGarmin(gw, tdd, args)

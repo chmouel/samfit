@@ -42,6 +42,18 @@ def parse_args():
     )
 
     parser.add_argument(
+        '--garmin-user',
+        type=str,
+        default=config.TP_USERNAME,
+        help="Garmin username",
+    )
+    parser.add_argument(
+        '--garmin-password',
+        type=str,
+        help="Garmin password",
+    )
+
+    parser.add_argument(
         '--tr-user',
         type=str,
         default=config.TR_USERNAME,
@@ -144,10 +156,17 @@ def parse_args():
     )
 
     show_plan.add_argument(
-        '--sync-garmin-today',
+        '--sync-garmin',
         action='store_true',
         default=False,
-        help="Sync today to garmin.",
+        help="Sync Garmin (only for current day).",
+    )
+
+    show_plan.add_argument(
+        '--sync-delete',
+        action='store_true',
+        default=False,
+        help="If deleting if already present (or it will fails).",
     )
 
     show_plan.add_argument(
