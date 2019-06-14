@@ -146,6 +146,8 @@ class GarminConnect(object):
 
 
 class GarminOPS(object):
+    get_all_workouts_cache = {}
+
     def __init__(self, args):
         bg = GarminConnect()
         self.session = bg.get_session(args.garmin_user, args.garmin_password)
@@ -190,11 +192,14 @@ class GarminOPS(object):
         return curl
 
     def get_all_workouts(self):
+        if self.get_all_workouts_cache:
+            return self.get_all_workouts_cache
         resp = self.session.get(
             'https://connect.garmin.com/modern/proxy/workout-service/workouts?start=1&limit=999&myWorkoutsOnly=true&sharedWorkoutsOnly=false&orderBy=WORKOUT_NAME&orderSeq=ASC&includeAtp=false'
         )
         resp.raise_for_status()
-        return resp.json()
+        self.get_all_workouts_cache = resp.json()
+        return self.get_all_workouts_cache
 
     def delete_workout(self, wid):
 
@@ -235,4 +240,7 @@ class GarminOPS(object):
             raise Exception(f"Error while adding garmin workout: {output}")
 
         os.remove(fp.name)
-        return json.loads(output)
+        try:
+            return json.loads(output)
+        except (json.decoder.JSONDecodeError):
+            return output

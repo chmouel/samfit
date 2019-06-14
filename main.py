@@ -163,10 +163,10 @@ def parse_args():
     )
 
     show_plan.add_argument(
-        '--sync-delete',
+        '--sync-force',
         action='store_true',
         default=False,
-        help="If deleting if already present (or it will fails).",
+        help="Force sync even if already there.",
     )
 
     show_plan.add_argument(

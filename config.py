@@ -41,7 +41,10 @@ TP_TYPE = {
     9: 'Strength',
 }
 
-GARMIN_TYPE = {1: 'Running', 2: 'Cycling'}
+GARMIN_TYPE = {
+    1: 'Running',
+    2: 'Cycling',
+}
 
 TP_TYPE_EMOJI_MAP = {
     'Running': '🏃',

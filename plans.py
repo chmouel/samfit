@@ -3,6 +3,7 @@ import datetime
 
 import calc
 import config
+import garmin_connect
 import garmin_workout
 import utils
 
@@ -143,7 +144,7 @@ def show_plan(args):
     cursor_date = cursor_date - datetime.timedelta(days=1)
 
     if args.sync_garmin:
-        args.today = True
+        gcnx = garmin_connect.GarminOPS(args)
 
     plan = utils.get_filej(args.plan_file)
     if not plan:
@@ -156,6 +157,7 @@ def show_plan(args):
     if args.today:
         args.description = True
 
+    marker = 1
     for week in plan:
         week_str = ''
         print_week = False
@@ -165,18 +167,26 @@ def show_plan(args):
 
         for day in list(calendar.day_name):
             cursor_date = cursor_date + datetime.timedelta(days=1)
-
             if args.week:
                 tdd = datetime.datetime.now()
-            else:
+            elif args.today:
                 tdd = args.today
+            else:
+                tdd = cursor_date
             if args.today and \
                (cursor_date.strftime("%Y%m%d") != tdd.strftime("%Y%m%d")):
                 continue
-            elif args.sync_garmin and cursor_date.strftime(
-                    "%Y%m%d") == tdd.strftime("%Y%m%d"):
+            elif args.sync_garmin:
+                if marker == 10:
+                    import time
+                    time.sleep(2)
+                    marker = 0
+                if day not in week['Workouts']:
+                    continue
                 for gw in week['Workouts'][day]:
-                    garmin_workout.tpWorkoutGarmin(gw, tdd, args)
+                    garmin_workout.tpWorkoutGarmin(gw, tdd, args, gcnx)
+                marker += 1
+                continue
 
             if args.week and \
                (cursor_date.strftime("%Y%m%d") == tdd.strftime("%Y%m%d")):
@@ -251,7 +261,9 @@ def show_plan(args):
 
         ret += week_str
 
-    if args.today and not ret:
+    if args.sync_garmin:
+        return
+    elif args.today and not ret:
         print("Nothing to do today {config.TP_TYPE_EMOJI_MAP['Rest]}")
     elif ret:
         print(ret)

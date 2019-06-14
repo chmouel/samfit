@@ -81,7 +81,7 @@ def _add_step(step, workout, args, order):
         print(
             f"{workout['structure']['primaryIntensityMetric']} Not supported yet"
         )
-        sys.exit(1)
+        return
     if gmin > gmax:
         gmin, gmax = gmax, gmin
 
@@ -115,9 +115,11 @@ def _add_step(step, workout, args, order):
     }
 
 
-def tpWorkoutGarmin(workout, tdd, args):
+def tpWorkoutGarmin(workout, tdd, args, gcnx):
     atype = config.TP_TYPE[workout['workoutTypeValueId']]
     if atype not in ('Running', 'Cycling'):
+        return
+    if not workout['structure']:  # TODO: notes
         return
 
     gtype = list(config.GARMIN_TYPE.keys())[list(
@@ -161,6 +163,8 @@ def tpWorkoutGarmin(workout, tdd, args):
             'sportTypeId': gtype,
             'sportTypeKey': atype.lower()
         },
+        'estimatedDurationInSecs':
+        workout['structure']['structure'][-1]['end'],
         'workoutName':
         title,
         'description':
@@ -174,12 +178,12 @@ def tpWorkoutGarmin(workout, tdd, args):
             'workoutSteps': gsteps,
         }]
     }
-    gops = garmin_connect.GarminOPS(args)
-    all_workouts = gops.get_all_workouts()
+
+    all_workouts = gcnx.get_all_workouts()
     for gw in all_workouts:
         if gw['workoutName'] == ret['workoutName']:
-            if args.sync_delete:
-                gops.delete_workout(gw['workoutId'])
+            if args.sync_force:
+                gcnx.delete_workout(gw['workoutId'])
                 print(
                     f"Workout: \"{gw['workoutName']}\" id: {gw['workoutId']} has been deleted."
                 )
@@ -187,14 +191,13 @@ def tpWorkoutGarmin(workout, tdd, args):
                 print(
                     f"Workout named '{ret['workoutName']}' already exist skipping"
                 )
-                sys.exit(1)
+                return
 
     import json
-    jeez = json.dumps(ret, indent=True)
-    resp = gops.create_workout(jeez)
-    gops.schedule_workout(resp['workoutId'], tdd)
+    jeez = json.dumps(ret)
+    resp = gcnx.create_workout(jeez)
+    gcnx.schedule_workout(resp['workoutId'], tdd)
 
     print(
         f"Workout: \"{resp['workoutName']}\" id: {resp['workoutId']} has been created."
     )
-    sys.exit(0)
