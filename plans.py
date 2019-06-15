@@ -1,4 +1,3 @@
-import calendar
 import datetime
 
 import calc
@@ -157,7 +156,6 @@ def show_plan(args):
     if args.today:
         args.description = True
 
-    marker = 1
     for week in plan:
         week_str = ''
         print_week = False
@@ -177,10 +175,6 @@ def show_plan(args):
                (cursor_date.strftime("%Y%m%d") != tdd.strftime("%Y%m%d")):
                 continue
             elif args.sync_garmin:
-                if marker == 10:
-                    import time
-                    time.sleep(2)
-                    marker = 0
                 if day not in week['Workouts']:
                     continue
                 for gw in week['Workouts'][day]:
@@ -267,31 +261,3 @@ def show_plan(args):
         print("Nothing to do today {config.TP_TYPE_EMOJI_MAP['Rest]}")
     elif ret:
         print(ret)
-
-
-def plan_to_ical(args):
-    events = []
-    cursor_date = dtparser.parse(args.start_date)
-    cursor_date = cursor_date - datetime.timedelta(days=1)
-
-    plan = utils.get_filej(args.plan_name)
-    if not plan:
-        raise Exception(f"Cannot find plan: {args.plan_name}")
-
-    for week in plan:
-        for day in list(calendar.day_name):
-            cursor_date = cursor_date + datetime.timedelta(days=1)
-            cursor_date = cursor_date.replace(hour=6, minute=0)
-
-            if day not in week["Workouts"] \
-               or not week["Workouts"][day]:  # empty
-                continue
-
-            daysw = week['Workouts'][day]
-            for current in daysw:
-                event = ical.generate_event(current, args, cursor_date)
-                events.append(event)
-
-    output = ical.generate_ical(args, events)
-    open(args.output_file, "w").write(output)
-    print(f"Generated iCS Calendar to: {args.output_file}")
