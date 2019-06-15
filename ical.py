@@ -12,12 +12,16 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
+import calendar
 import datetime
 
+import dateutil.parser as dtparser
+import ical
 import ics
 
 import config
 import plans
+import utils
 
 
 def generate_ical(args, events):
@@ -58,3 +62,31 @@ def generate_event(current, args, cursor_date):
                 seconds=current["totalTimePlanned"] * (60 * 60))
 
     return event
+
+
+def plan_to_ical(args):
+    events = []
+    cursor_date = dtparser.parse(args.start_date)
+    cursor_date = cursor_date - datetime.timedelta(days=1)
+
+    plan = utils.get_filej(args.plan_name)
+    if not plan:
+        raise Exception(f"Cannot find plan: {args.plan_name}")
+
+    for week in plan:
+        for day in list(calendar.day_name):
+            cursor_date = cursor_date + datetime.timedelta(days=1)
+            cursor_date = cursor_date.replace(hour=6, minute=0)
+
+            if day not in week["Workouts"] \
+               or not week["Workouts"][day]:  # empty
+                continue
+
+            daysw = week['Workouts'][day]
+            for current in daysw:
+                event = ical.generate_event(current, args, cursor_date)
+                events.append(event)
+
+    output = ical.generate_ical(args, events)
+    open(args.output_file, "w").write(output)
+    print(f"Generated iCS Calendar to: {args.output_file}")

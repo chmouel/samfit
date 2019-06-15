@@ -20,6 +20,7 @@ import trainingpeaks.library as tplib
 import trainingpeaks.calendar as tpcal
 import traineroad
 import traineroad_plan_md
+import ical
 import config
 import plans
 import zwift
@@ -428,7 +429,7 @@ def main(arguments):
         return plans.show_plan(args)
 
     if args.action == "plan_to_ical":
-        return plans.plan_to_ical(args)
+        return ical.plan_to_ical(args)
 
     if args.action == "zwift_generate_zwo":
         return zwift.generate_zwo(args)
