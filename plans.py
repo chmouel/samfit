@@ -63,18 +63,21 @@ def show_workout(args,
            structure['length']['value'] != 1:
             s = utils.colourText(
                 structure['length']['value'], 'magenta', colorize=colorize)
-            ret += f"{s} *"
+            ret += f"{s} * "
 
-        # if len(structure['steps']) > 1:
-        #     ret += "("
+        if len(structure['steps']) > 1:
+            ret += "("
         for step in structure['steps']:
             st = ''
             maxvalue = step['targets'][0].get('maxValue',
                                               step['targets'][0]['minValue'])
-            median = (step['targets'][0]['minValue'] + maxvalue) / 2
+            minvalue = step['targets'][0]['minValue']
             color = ''
-            pace = calc.convertTreshold(
-                workout['workoutTypeValueId'], median, args.user_run_pace,
+            paceMax = calc.convertTreshold(
+                workout['workoutTypeValueId'], maxvalue, args.user_run_pace,
+                args.user_swim_pace, args.user_cycling_ftp)
+            paceMin = calc.convertTreshold(
+                workout['workoutTypeValueId'], minvalue, args.user_run_pace,
                 args.user_swim_pace, args.user_cycling_ftp)
 
             if step['intensityClass'] == "warmUp":
@@ -84,7 +87,7 @@ def show_workout(args,
                 s = "Warm Down for"
                 color = 'white_italic'
             elif step['intensityClass'] == "rest":
-                if median == 0:
+                if minvalue == 0:
                     s = "Rest"
                 else:
                     s = "Easy"
@@ -99,11 +102,11 @@ def show_workout(args,
                     s = ''
 
                 color = 'green'
-                if median > 80:
+                if minvalue > 80:
                     color = 'blue'
-                if median > 90:
+                if minvalue > 90:
                     color = 'yellow'
-                if median > 100:
+                if minvalue > 100:
                     color = 'red'
             else:
                 s = step['intensityClass']
@@ -113,24 +116,33 @@ def show_workout(args,
             elif wtype == 'distance':
                 st += humanfriendly.format_length(
                     step['length']['value']) + " "
-            st += f"at {pace}"
+            st += f"at min {paceMin} max {paceMax}"
             if config.TP_TYPE[workout['workoutTypeValueId']] == 'Cycling':
                 st += f"W‍"
 
             if config.TP_TYPE[workout[
                     'workoutTypeValueId']] == 'Running' and wtype == 'duration':
                 st += " for " + humanfriendly.format_length(
-                    int(calc.timePace2distance(step['length']['value'], pace)))
+                    int(
+                        calc.timePace2distance(step['length']['value'],
+                                               paceMin)))
+                st += " or " + humanfriendly.format_length(
+                    int(
+                        calc.timePace2distance(step['length']['value'],
+                                               paceMax)))
 
-            if median > 0:
-                st += " [" + str(round(median)) + "%]"
+            if minvalue > 0:
+                st += " [" + str(round(minvalue)) + "%]"
 
             ret += utils.colourText(st, color, colorize=colorize)
 
             if structure['steps'][-1] != step:
-                ret += " / "
+                ret += "\n          "
 
+        if len(structure['steps']) > 1:
+            ret += " )"
         ret += "\n"
+
         if extranewlines:
             ret += "\n"
     return (title, ret)
@@ -257,6 +269,6 @@ def show_plan(args):
     if args.sync_garmin:
         return
     elif args.today and not ret:
-        print("Nothing to do today {config.TP_TYPE_EMOJI_MAP['Rest]}")
+        print(f"Nothing to do today {config.TP_TYPE_EMOJI_MAP['Rest']}")
     elif ret:
         print(ret)
