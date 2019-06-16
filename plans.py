@@ -190,7 +190,6 @@ def show_plan(args):
                     continue
                 for gw in week['Workouts'][day]:
                     garmin_workout.tpWorkoutGarmin(gw, tdd, args, gcnx)
-                marker += 1
                 continue
 
             if args.week and \
