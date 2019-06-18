@@ -235,6 +235,9 @@ def tpWorkoutGarmin(workout, tdd, args, gcnx):
                 )
                 return
 
+    if args.sync_only_delete:
+        return
+
     import json
     jeez = json.dumps(ret)
     resp = gcnx.create_workout(jeez)

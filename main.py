@@ -171,6 +171,13 @@ def parse_args():
     )
 
     show_plan.add_argument(
+        '--sync-only-delete',
+        action='store_true',
+        default=False,
+        help="Just delete.",
+    )
+
+    show_plan.add_argument(
         '--week',
         '-w',
         action='store_true',

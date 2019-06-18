@@ -116,17 +116,17 @@ def show_workout(args,
             elif wtype == 'distance':
                 st += humanfriendly.format_length(
                     step['length']['value']) + " "
-            st += f"at min {paceMin} max {paceMax}"
+            st += f"at {paceMin} - {paceMax}"
             if config.TP_TYPE[workout['workoutTypeValueId']] == 'Cycling':
-                st += f"W‍"
+                st += f" watts"
 
             if config.TP_TYPE[workout[
                     'workoutTypeValueId']] == 'Running' and wtype == 'duration':
-                st += " for " + humanfriendly.format_length(
+                st += " for a distance between " + humanfriendly.format_length(
                     int(
                         calc.timePace2distance(step['length']['value'],
                                                paceMin)))
-                st += " or " + humanfriendly.format_length(
+                st += " - " + humanfriendly.format_length(
                     int(
                         calc.timePace2distance(step['length']['value'],
                                                paceMax)))
@@ -140,7 +140,7 @@ def show_workout(args,
                 ret += "\n          "
 
         if len(structure['steps']) > 1:
-            ret += " )"
+            ret += ")"
         ret += "\n"
 
         if extranewlines:
