@@ -143,6 +143,12 @@ def parse_args():
     )
 
     show_plan.add_argument(
+        "--end-date",
+        type=str,
+        help="End Date",
+    )
+
+    show_plan.add_argument(
         '--date',
         type=str,
         help="Show at this specific date",
