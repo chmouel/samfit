@@ -82,10 +82,10 @@ def show_workout(args,
 
             if step['intensityClass'] == "warmUp":
                 s = "Warm Up for"
-                color = 'white_italic'
+                color = 'white_bold'
             elif step['intensityClass'] == "coolDown":
                 s = "Warm Down for"
-                color = 'white_italic'
+                color = 'white_bold'
             elif step['intensityClass'] == "rest":
                 if minvalue == 0:
                     s = "Rest"
@@ -94,7 +94,7 @@ def show_workout(args,
                 if structure['length']['value'] > 1:
                     color = 'cyan'
                 else:
-                    color = 'white_italic'
+                    color = 'white_bold'
             elif step['intensityClass'] == "active":
                 if structure['length']['value'] == 1:
                     s = 'Active for'
