@@ -162,7 +162,7 @@ def parse_plans(args):
         tr.get,
         f"/plans/{plan_number}",
         cache_path,
-    )
+    )['Plan']
     args.filter_library_regexp = f"^{args.library_name}$"
     workouts = tplib.get_all_workouts_library(args)
     athlete_id = tpuser.get_userinfo(args.tp_user,
