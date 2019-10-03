@@ -14,7 +14,6 @@
 # under the License.
 import calendar
 import os.path
-import collections
 
 import config
 import utils

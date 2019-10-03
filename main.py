@@ -341,10 +341,24 @@ def parse_args():
     )
 
     tp_import_tr_workouts.add_argument(
+        '--everything',
+        action='store_true',
+        default=False,
+        help="Import everything?",
+    )
+
+    tp_import_tr_workouts.add_argument(
         '--library-name',
         type=str,
         default="TrainerRoad",
         help="The library name where to upload the workout we want",
+    )
+
+    tp_import_tr_workouts.add_argument(
+        'workout_ids',
+        nargs='+',
+        type=int,
+        help='Import those workout ids',
     )
 
     tr_generate_md = mainparser.add_parser(

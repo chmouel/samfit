@@ -27,13 +27,16 @@ import config
 
 
 def import_tr_workouts(args):
-    RANGE = sorted([
-        int(re.sub(r"(\d+).json(.gz)?", r"\1", os.path.basename(x)))
-        for x in glob.glob(
-            os.path.join(config.BASE_DIR, "workout", "*.json*"))
-    ])
+    if args.everything:
+        todos = sorted([
+            int(re.sub(r"(\d+).json(.gz)?", r"\1", os.path.basename(x)))
+            for x in glob.glob(
+                os.path.join(config.BASE_DIR, "workout", "*.json*"))
+        ])
+    else:
+        todos = args.workout_ids
 
-    tr = traineroad.get_session()
+    tr = traineroad.get_session(args)
     tp = tpsess.get_session(args.tp_user, args.tp_password)
     libraries = utils.get_or_cache(tp.get, "/exerciselibrary/v1/libraries",
                                    f"tp_libraries_{args.tp_user}")
@@ -49,7 +52,7 @@ def import_tr_workouts(args):
     args.filter_library_regexp = f"^{args.library_name}$"
     workouts = get_all_workouts_library(args)
 
-    for workout_id in RANGE:
+    for workout_id in todos:
         cache_path = os.path.join(config.BASE_DIR, "workout", str(workout_id))
 
         workout = utils.get_or_cache(
@@ -62,6 +65,9 @@ def import_tr_workouts(args):
             print(f"Skipping '{workout_id}', there is an issue loading it")
             continue
 
+        if 'Workout' in workout:
+            workout = workout['Workout']
+
         workout_name = workout["Details"]["WorkoutName"]
         if workout_name in workouts:
             print(f"Skipping '{workout_name}' already added")
@@ -71,6 +77,7 @@ def import_tr_workouts(args):
         if not convert:
             print(f"Skipping '{workout_name}' not an interesting one")
             continue
+
         add_workout(args, library_id, convert)
 
         if not args.test:
@@ -94,7 +101,7 @@ def add_workout(args, library_id, dico):
 
 def convert_tr2tp(workout, library_id):
     if not workout['Details']['WorkoutDescription'] or not \
-       workout['Details']['GoalDescription'] or len(workout['Tags']) == 0:
+       workout['Details']['GoalDescription']:
         return {}
 
     category_text = ''
