@@ -17,6 +17,7 @@ import os
 import json
 import subprocess
 import gzip
+import glob
 import textwrap
 
 import config
@@ -32,7 +33,10 @@ def get_password_from_osx(service, account):
 
 
 def get_or_cache(getter, url, obj, cache=True):
-    if obj.startswith("/"):
+    tryglobs = glob.glob(os.path.join(config.BASE_DIR, "cache", obj + "-*"))
+    if len(tryglobs) == 1:
+        fpath = tryglobs[0].replace(".gz", "")
+    elif obj.startswith("/"):
         fpath = obj + ".json"
     else:
         fpath = os.path.join(config.BASE_DIR, "cache", obj + ".json")

@@ -29,7 +29,7 @@ import config
 def import_tr_workouts(args):
     if args.everything:
         todos = sorted([
-            int(re.sub(r"(\d+).json(.gz)?", r"\1", os.path.basename(x)))
+            int(re.sub(r"(\d+).*", r"\1", os.path.basename(x)))
             for x in glob.glob(
                 os.path.join(config.BASE_DIR, "workout", "*.json*"))
         ])
@@ -40,6 +40,7 @@ def import_tr_workouts(args):
     tp = tpsess.get_session(args.tp_user, args.tp_password)
     libraries = utils.get_or_cache(tp.get, "/exerciselibrary/v1/libraries",
                                    f"tp_libraries_{args.tp_user}")
+
     libraries = [
         x['exerciseLibraryId'] for x in libraries
         if x['libraryName'] == args.library_name
@@ -235,29 +236,35 @@ def update_workout(args, library_id, item_id, dico):
     print(f"Updated '{dico['itemName']}' to '{library_id}' library")
 
 
+def _add_cadence_plan(w):
+    steps = []
+    for step in w['structure']['structure']:
+        for sub in step['steps']:
+            if sub['intensityClass'] == 'active' and \
+               len(sub['targets']) == 2:
+                sub['targets'] = [sub['targets'][0]]
+
+            if sub['intensityClass'] == 'active' and \
+               len(sub['targets']) == 1:
+                step['steps'][0]['targets'].append({
+                    "maxValue":
+                    config.ACTIVE_CADENCE_MAX,
+                    "minValue":
+                    config.ACTIVE_CADENCE_MIN,
+                    "unit":
+                    "roundOrStridePerMinute",
+                })
+        steps.append(step)
+    return steps
+
+
 def add_cadence_plan(args):
     workouts = get_all_workouts_library(args, full=True)
 
     for name in workouts:
         w = workouts[name]
-        steps = []
-        for step in w['structure']['structure']:
-            for sub in step['steps']:
-                if sub['intensityClass'] == 'active' and \
-                   len(sub['targets']) == 2:
-                    sub['targets'] = [sub['targets'][0]]
+        steps = _add_cadence_plan(w)
 
-                if sub['intensityClass'] == 'active' and \
-                   len(sub['targets']) == 1:
-                    step['steps'][0]['targets'].append({
-                        "maxValue":
-                        config.ACTIVE_CADENCE_MAX,
-                        "minValue":
-                        config.ACTIVE_CADENCE_MIN,
-                        "unit":
-                        "roundOrStridePerMinute",
-                    })
-            steps.append(step)
         w['structure']['structure'] = steps
         libraryid = w['exerciseLibraryId']
         itemid = w['exerciseLibraryItemId']
