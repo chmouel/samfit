@@ -50,9 +50,10 @@ def import_tr_workouts(args):
     library_id = libraries[0]
 
     args.filter_library_regexp = f"^{args.library_name}$"
-    workouts = get_all_workouts_library(args)
+    workouts = get_all_workouts_library(args, cache=not args.no_cache)
 
     for workout_id in todos:
+        update = None
         cache_path = os.path.join(config.BASE_DIR, "workout", str(workout_id))
 
         workout = utils.get_or_cache(
@@ -70,33 +71,46 @@ def import_tr_workouts(args):
 
         workout_name = workout["Details"]["WorkoutName"]
         if workout_name in workouts:
-            print(f"Skipping '{workout_name}' already added")
-            continue
+            if args.update:
+                update = workouts[workout_name][1]
+            else:
+                print(f"Skipping {workout_name} already in library")
+                continue
 
         convert = convert_tr2tp(workout, library_id)
         if not convert:
             print(f"Skipping '{workout_name}' not an interesting one")
             continue
 
-        add_workout(args, library_id, convert)
+        _add_cadence_plan(convert)
+
+        add_workout(args, library_id, convert, update=update)
 
         if not args.test:
             time.sleep(2)
 
 
-def add_workout(args, library_id, dico):
+def add_workout(args, library_id, dico, update=None):
     try:
         if not args.test:
             tp = tpsess.get_session(args.tp_user, args.tp_password)
-            r = tp.post(f"/exerciselibrary/v1/libraries/{library_id}/items",
-                        dico)
+            url = f"/exerciselibrary/v1/libraries/{library_id}/items"
+            method = tp.post
+            updateword = 'Adding'
+            if update:
+                url = f"{url}/{update}"
+                dico["exerciseLibraryItemId"] = update
+                method = tp.put
+                updateword = 'Updating'
+            r = method(url, dico)
             r.raise_for_status()
     except requests.exceptions.HTTPError as err:
         from pprint import pprint as p
         p(dico)
         raise err
 
-    print(f"Adding '{dico['itemName']}' to '{args.library_name}' library")
+    print(
+        f"{updateword} '{dico['itemName']}' to '{args.library_name}' library")
 
 
 def convert_tr2tp(workout, library_id):
@@ -176,7 +190,7 @@ def convert_tr2tp(workout, library_id):
     return ret
 
 
-def get_all_workouts_library(args, full=False):
+def get_all_workouts_library(args, cache=True, full=False):
     tp = tpsess.get_session(args.tp_user, args.tp_password)
     libraries = utils.get_or_cache(tp.get, "/exerciselibrary/v1/libraries",
                                    f"tp_libraries_{args.tp_user}")
@@ -188,10 +202,13 @@ def get_all_workouts_library(args, full=False):
     if not libraries:
         raise Exception("Could not find anything in the libraries")
     ret = {}
+
     for library in libraries:
         ljson = utils.get_or_cache(
-            tp.get, f'/exerciselibrary/v1/libraries/{library}/items',
-            f"tp_library_{library}")
+            tp.get,
+            f'/exerciselibrary/v1/libraries/{library}/items',
+            f"tp_library_{library}",
+            cache=cache)
         for exercise in ljson:
             if full:
                 ret[exercise['itemName']] = exercise

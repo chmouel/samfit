@@ -334,6 +334,20 @@ def parse_args():
         'tp_import_tr_workouts', help="Import all TR workouts in TP libraries")
 
     tp_import_tr_workouts.add_argument(
+        '--update',
+        action='store_true',
+        default=False,
+        help="Don't do caching when getting workouts",
+    )
+
+    tp_import_tr_workouts.add_argument(
+        '--no-cache',
+        action='store_true',
+        default=False,
+        help="Don't do caching when getting workouts",
+    )
+
+    tp_import_tr_workouts.add_argument(
         '--include-dummies',
         action='store_true',
         default=False,
