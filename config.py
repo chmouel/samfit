@@ -14,8 +14,8 @@
 # under the License.
 import os
 
-TR_USERNAME = 'samfit'
-TP_USERNAME = 'chmouel'
+TR_USERNAME = "samfit"
+TP_USERNAME = "chmouel"
 
 if os.path.exists(os.path.expanduser("~/Work/samfit")):
     BASE_DIR = os.path.expanduser("~/Work/samfit")
@@ -31,30 +31,27 @@ TP_REST_TYPE_ID = 7
 TIME_ZONE = "Europe/Paris"
 
 TP_TYPE = {
-    100: 'Other',
-    10: 'Note',
-    1: 'Swim',
-    2: 'Cycling',
-    3: 'Running',
-    4: 'Brick',
-    7: 'Rest',
-    9: 'Strength',
+    100: "Other",
+    10: "Note",
+    1: "Swim",
+    2: "Cycling",
+    3: "Running",
+    4: "Brick",
+    7: "Rest",
+    9: "Strength",
 }
 
-GARMIN_TYPE = {
-    1: 'Running',
-    2: 'Cycling',
-}
+GARMIN_TYPE = {1: "Running", 2: "Cycling"}
 
 TP_TYPE_EMOJI_MAP = {
-    'Running': '🏃',
-    'Cycling': '🚴',
-    'Swim': '🏊',
-    'Note': '📝',
-    'Other': '💡',
-    'Rest': '💤 Zzz🎮🍸👩‍❤️‍👨',
-    'Strength': '🏋️‍♂️',
-    'Brick': '<0001f9f1>'
+    "Running": "🏃",
+    "Cycling": "🚴",
+    "Swim": "🏊",
+    "Note": "📝",
+    "Other": "💡",
+    "Rest": "💤 Zzz🎮🍸👩‍❤️‍👨",
+    "Strength": "🏋️‍♂️",
+    "Brick": "<0001f9f1>",
 }
 
 ACTIVE_CADENCE_MIN = 85
@@ -65,5 +62,5 @@ USER_RUN_PACE = "4'15"
 USER_SWIM_PACE = "2'20"
 
 # In osx keychain if we don't want to pass the password in clears
-TP_SECURITY_ACCOUNT = 'chmouel'
-TP_SECURITY_SERVICE = 'trainingpeaks'
+TP_SECURITY_ACCOUNT = "chmouel"
+TP_SECURITY_SERVICE = "trainingpeaks"
