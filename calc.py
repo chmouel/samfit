@@ -35,7 +35,7 @@ def totalseconds(spec):
 
 def pace2speed(pace):
     ts = totalseconds(pace)
-    return ((1000 / ts) * 3.6)
+    return (1000 / ts) * 3.6
 
 
 def speed2centimetersms(speed):  # garmin stuff
@@ -47,13 +47,12 @@ def pace2seconds(pace):
         quote = "'"
     elif ":" in pace:
         quote = ":"
-    return (int(pace[:pace.find(quote)]) * 60) + int(
-        pace[pace.find(quote) + 1:])
+    return (int(pace[: pace.find(quote)]) * 60) + int(pace[pace.find(quote) + 1 :])
 
 
 def seconds2pace(seconds):
     sp = str(datetime.timedelta(seconds=seconds)).split(":")
-    sec = "%.2d" % int(sp[2][:sp[2].find(".")])
+    sec = "%.2d" % int(sp[2][: sp[2].find(".")])
     return f"{sp[1]}'{sec}"
 
 
@@ -61,13 +60,13 @@ def convertTreshold(wtype, percent, run_pace, swim_pace, ftp):
     if percent == 0:
         return "still 🧘"
 
-    if config.TP_TYPE[wtype] == 'Running':
+    if config.TP_TYPE[wtype] == "Running":
         tresholds = pace2seconds(run_pace)
         return seconds2pace(tresholds / percent * 100)
-    if config.TP_TYPE[wtype] == 'Swim':
+    if config.TP_TYPE[wtype] == "Swim":
         tresholds = pace2seconds(swim_pace)
         return seconds2pace(tresholds / percent * 100)
-    elif config.TP_TYPE[wtype] == 'Cycling':
+    elif config.TP_TYPE[wtype] == "Cycling":
         return round(ftp * percent / 100)
 
 
