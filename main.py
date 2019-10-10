@@ -337,7 +337,7 @@ def parse_args():
         '--update',
         action='store_true',
         default=False,
-        help="Don't do caching when getting workouts",
+        help="Update instead of erroring if already present",
     )
 
     tp_import_tr_workouts.add_argument(
@@ -351,7 +351,7 @@ def parse_args():
         '--include-dummies',
         action='store_true',
         default=False,
-        help="Do we incly the dummy workout that doesn't have any comments?",
+        help="Do we include the dummy workouts that doesn't have any comments?",
     )
 
     tp_import_tr_workouts.add_argument(
