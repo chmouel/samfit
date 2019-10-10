@@ -107,6 +107,12 @@ class TPSession(object):
             self.init()
         return self.session.post(furl, json=jeez)
 
+    def delete(self, url):
+        furl = 'https://tpapi.trainingpeaks.com' + url
+        if not self.session:
+            self.init()
+        return self.session.delete(furl)
+
     def put(self, url, jeez):
         furl = 'https://tpapi.trainingpeaks.com' + url
         if not self.session:

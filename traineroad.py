@@ -14,7 +14,8 @@
 # under the License.
 import calendar
 import datetime
-import dateutil.parser as parser
+import dateutil.parser as dtparser
+
 import fcntl
 import getpass
 import os
@@ -28,6 +29,7 @@ import utils
 import trainingpeaks.calendar as tpcal
 import trainingpeaks.library as tplib
 import trainingpeaks.user as tpuser
+import trainingpeaks.session as tpsess
 import exceptions
 
 SESSION = None
@@ -151,7 +153,7 @@ def parse_plans(args):
     plan_number = args.plan_number
     cache_path = os.path.join(config.BASE_DIR, "plans", f"plan-{plan_number}")
 
-    start_date = parser.parse(args.start_date)
+    start_date = dtparser.parse(args.start_date)
     if start_date.weekday() != 0:
         raise exceptions.DateError(
             "%s don't start on a monday" % (start_date.today()))
@@ -238,3 +240,69 @@ Hours Per Week: {plan['HoursPerWeek']}
 
             if not args.test:
                 time.sleep(2)
+
+
+def unapply_plan(args):
+    plan_number = args.plan_number
+    cache_path = os.path.join(config.BASE_DIR, "plans", f"plan-{plan_number}")
+
+    start_date = dtparser.parse(args.start_date)
+    if start_date.weekday() != 0:
+        raise exceptions.DateError(
+            "%s don't start on a monday" % (start_date.today()))
+
+    cursor_date = start_date - datetime.timedelta(days=1)
+    tr = get_session(args)
+    plan = utils.get_or_cache(
+        tr.get,
+        f"/plans/{plan_number}",
+        cache_path,
+    )['Plan']
+    athlete_id = tpuser.get_userinfo(args.tp_user,
+                                     args.tp_password)['user']['personId']
+    plan_name = plan['Name']
+
+    ret = {}
+    for week in plan['Weeks']:
+        for day in list(calendar.day_name):
+            # Do this here since they are days and before we skip to next ones,
+            cursor_date = cursor_date + datetime.timedelta(days=1)
+            if day == 'Monday':
+                ret[cursor_date] = [f'{week["Name"]} - {plan_name}']
+
+            if not week[day]:  # empty
+                continue
+
+            if cursor_date in ret:
+                ret[cursor_date] += [x['Workout']['Name'] for x in week[day]]
+            else:
+                ret[cursor_date] = [x['Workout']['Name'] for x in week[day]]
+
+    from_str = list(ret)[0].strftime("%Y-%m-%d")
+    to_str = list(ret)[-1].strftime("%Y-%m-%d")
+
+    tp = tpsess.get_session(args.tp_user, args.tp_password)
+    program = utils.get_or_cache(
+        tp.get,
+        f"/fitness/v1/athletes/{athlete_id}/workouts/{from_str}/{to_str}",
+        f"program_workouts_{athlete_id}_{from_str}_{to_str}",
+    )
+
+    todelete = []
+    for workout in program:
+        workoutdate = dtparser.parse(workout["workoutDay"])
+        if workoutdate in ret:
+            for title in ret[workoutdate]:
+                if title == workout['title']:
+                    todelete.append(workout['workoutId'])
+
+    for delete in todelete:
+        try:
+            r = tp.delete(
+                f"/fitness/v1/athletes/{athlete_id}/workouts/{delete}")
+            r.raise_for_status()
+        except requests.exceptions.HTTPError as err:
+            print(f"Failed to delete workoutID: {delete}: {err}")
+            continue
+        else:
+            print(f"WorkoutID: {delete} has been deleted.")

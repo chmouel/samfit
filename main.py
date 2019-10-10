@@ -432,6 +432,25 @@ def parse_args():
         help="Start date of the plan",
     )
 
+    tr_unapply_plan_on_tp = mainparser.add_parser(
+        'tr_unapply_plan_on_tp', help="Unapply plan on TP")
+
+    tr_unapply_plan_on_tp.add_argument(
+        '-p',
+        '--plan-number',
+        required=True,
+        type=str,
+        help="Plan number",
+    )
+
+    tr_unapply_plan_on_tp.add_argument(
+        '-s',
+        '--start-date',
+        required=True,
+        type=str,
+        help="Start date of the plan",
+    )
+
     return parser
 
 
@@ -447,6 +466,9 @@ def main(arguments):
 
     if args.action == "tr_plan_to_tp":
         return traineroad.parse_plans(args)
+
+    if args.action == "tr_unapply_plan_on_tp":
+        return traineroad.unapply_plan(args)
 
     if args.action == "tr_get_plan":
         return traineroad.get_plan(args)
