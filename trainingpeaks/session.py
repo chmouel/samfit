@@ -15,6 +15,8 @@
 import fcntl
 import tempfile
 import time
+import re
+
 import requests
 
 import config
@@ -23,7 +25,12 @@ import utils
 
 class TPSession(object):
     categories = []
-    _obligatory_headers = {"Referer": "https://home.trainingpeaks.com/login"}
+    _obligatory_headers = {
+        "Referer":
+        "https://home.trainingpeaks.com/login",
+        'User-Agent':
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:71.0) Gecko/20100101 Firefox/71.0',
+    }
     _reauthAttempts = 1
 
     def __init__(self, username, password):
@@ -75,6 +82,8 @@ class TPSession(object):
         data = {
             "Username": self.username,
             "Password": self.password,
+            'submit': "",
+            "IsHeaderless": "False",
         }
         params = {}
         preResp = session.get(
@@ -83,11 +92,21 @@ class TPSession(object):
             raise Exception("SSO prestart error %s %s" % (preResp.status_code,
                                                           preResp.text))
 
+        match = re.findall(
+            '.*<form action=.*__RequestVerificationToken" type="hidden" value="([^"]*)"',
+            preResp.text)
+
+        if not match:
+            raise Exception("Cannot find __RequestVerificationToken in %s",
+                            preResp.text)
+
+        data['__RequestVerificationToken'] = match[0]
         ssoResp = session.post(
             "https://home.trainingpeaks.com/login",
             params=params,
             data=data,
-            allow_redirects=False)
+            allow_redirects=False,
+        )
         if ssoResp.status_code != 302 or "temporarily unavailable" \
            in ssoResp.text:
             raise Exception(
