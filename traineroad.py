@@ -90,21 +90,20 @@ class TRSession(object):
             "Password": self.password,
         }
         params = {}
-        preResp = session.get(
-            "https://www.trainerroad.com/login", params=params)
+        preResp = session.get("https://www.trainerroad.com/login",
+                              params=params)
         if preResp.status_code != 200:
-            raise Exception("SSO prestart error %s %s" % (preResp.status_code,
-                                                          preResp.text))
+            raise Exception("SSO prestart error %s %s" %
+                            (preResp.status_code, preResp.text))
 
-        ssoResp = session.post(
-            "https://www.trainerroad.com/login",
-            params=params,
-            data=data,
-            allow_redirects=False)
+        ssoResp = session.post("https://www.trainerroad.com/login",
+                               params=params,
+                               data=data,
+                               allow_redirects=False)
         if ssoResp.status_code != 302 or "temporarily unavailable" \
            in ssoResp.text:
-            raise Exception(
-                "TRLogin error %s %s" % (ssoResp.status_code, ssoResp.text))
+            raise Exception("TRLogin error %s %s" %
+                            (ssoResp.status_code, ssoResp.text))
         session.headers.update(self._obligatory_headers)
 
         self.session = session
@@ -151,12 +150,12 @@ def get_plan(args):
 
 def parse_plans(args):
     plan_number = args.plan_number
-    cache_path = os.path.join(config.BASE_DIR, "plans", f"plan-{plan_number}")
+    cache_path = os.path.join(config.BASE_DIR, "plans", f"{plan_number}")
 
     start_date = dtparser.parse(args.start_date)
     if start_date.weekday() != 0:
-        raise exceptions.DateError(
-            "%s don't start on a monday" % (start_date.today()))
+        raise exceptions.DateError("%s don't start on a monday" %
+                                   (start_date.today()))
 
     cursor_date = start_date - datetime.timedelta(days=1)
     tr = get_session(args)
@@ -215,16 +214,15 @@ Hours Per Week: {plan['HoursPerWeek']}
         if type(ret[date]) is dict:  # NOTE: this is a note
             coachComments = html2text.html2text(ret[date]['coachComment'])
             description = html2text.html2text(ret[date]['description'])
-            tpcal.create_calendar_other(
-                args,
-                banner_message="Note",
-                athlete_id=athlete_id,
-                date=date,
-                name=ret[date]['title'],
-                coachComments=coachComments,
-                description=description,
-                title=ret[date]['title'],
-                testmode=args.test)
+            tpcal.create_calendar_other(args,
+                                        banner_message="Note",
+                                        athlete_id=athlete_id,
+                                        date=date,
+                                        name=ret[date]['title'],
+                                        coachComments=coachComments,
+                                        description=description,
+                                        title=ret[date]['title'],
+                                        testmode=args.test)
             continue
 
         for workout in ret[date]:
@@ -248,8 +246,8 @@ def unapply_plan(args):
 
     start_date = dtparser.parse(args.start_date)
     if start_date.weekday() != 0:
-        raise exceptions.DateError(
-            "%s don't start on a monday" % (start_date.today()))
+        raise exceptions.DateError("%s don't start on a monday" %
+                                   (start_date.today()))
 
     cursor_date = start_date - datetime.timedelta(days=1)
     tr = get_session(args)
