@@ -38,16 +38,19 @@ def import_tr_workouts(args):
 
     tr = traineroad.get_session(args)
     tp = tpsess.get_session(args.tp_user, args.tp_password)
-    libraries = utils.get_or_cache(tp.get, "/exerciselibrary/v1/libraries",
-                                   f"tp_libraries_{args.tp_user}")
+    _libraries = utils.get_or_cache(tp.get,
+                                    "/exerciselibrary/v1/libraries",
+                                    f"tp_libraries_{args.tp_user}",
+                                    cache=not args.no_cache)
 
     libraries = [
-        x['exerciseLibraryId'] for x in libraries
+        x['exerciseLibraryId'] for x in _libraries
         if x['libraryName'] == args.library_name
     ]
     if not libraries:
         raise Exception(
-            f"TP library name '{args.library_name}' could not be found")
+            f"TP library name '{args.library_name}' could not be found: {_libraries}"
+        )
     library_id = libraries[0]
 
     args.filter_library_regexp = f"^{args.library_name}$"
