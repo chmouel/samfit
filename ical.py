@@ -42,11 +42,14 @@ def generate_event(current, args, cursor_date):
         event.duration = datetime.timedelta(
             seconds=(current["totalTimePlanned"] * (60 * 60)))
 
-    event.description = current["description"] and current[
-        "description"].replace("\r", "") or ""
+    event.description = (current["description"]
+                         and current["description"].replace("\r", "") or "")
 
-    title, pp = plans.show_workout(
-        args, current, colorize=False, showtss=False, extranewlines=True)
+    title, pp = plans.show_workout(args,
+                                   current,
+                                   colorize=False,
+                                   showtss=False,
+                                   extranewlines=True)
     event.name = title or ""
     if pp:
         event.description += "\nExercises:\n\n" + pp.replace("\r", "\n")
@@ -57,9 +60,9 @@ def generate_event(current, args, cursor_date):
 
     event.begin = cursor_date
     if current["totalTimePlanned"]:
-        cursor_date = cursor_date + datetime.timedelta(
-            minutes=30) + datetime.timedelta(
-                seconds=current["totalTimePlanned"] * (60 * 60))
+        cursor_date = (cursor_date + datetime.timedelta(minutes=30) +
+                       datetime.timedelta(seconds=current["totalTimePlanned"] *
+                                          (60 * 60)))
 
     return event
 
@@ -78,11 +81,11 @@ def plan_to_ical(args):
             cursor_date = cursor_date + datetime.timedelta(days=1)
             cursor_date = cursor_date.replace(hour=6, minute=0)
 
-            if day not in week["Workouts"] \
-               or not week["Workouts"][day]:  # empty
+            if (day not in week["Workouts"]
+                    or not week["Workouts"][day]):  # empty
                 continue
 
-            daysw = week['Workouts'][day]
+            daysw = week["Workouts"][day]
             for current in daysw:
                 event = ical.generate_event(current, args, cursor_date)
                 events.append(event)
