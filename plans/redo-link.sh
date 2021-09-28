@@ -1,0 +1,1 @@
+mkdir -p names;for i in plan*gz;do echo $i;name=$(zcat $i|jq -r '.Plan.Name'|sed -e 's,/,-,g' -e 's/ /_/g');[[ -e names/${names}.json.gz ]] && { echo "$names already exist"; continue ;} ;echo ln -sfv "../$i" "names/${name}.json.gz";done

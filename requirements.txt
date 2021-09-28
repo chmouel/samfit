@@ -1,5 +1,0 @@
-requests
-python-dateutil
-html2text
-ics
-humanfriendly
