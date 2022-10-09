@@ -26,10 +26,14 @@ import humanfriendly
 
 
 def get_password_from_osx(service, account):
-    return subprocess.Popen([
-        "security", "find-generic-password", "-a", account, "-s", service, "-w"
-    ],
-                            stdout=subprocess.PIPE).communicate()[0].strip()
+    return (
+        subprocess.Popen(
+            ["security", "find-generic-password", "-a", account, "-s", service, "-w"],
+            stdout=subprocess.PIPE,
+        )
+        .communicate()[0]
+        .strip()
+    )
 
 
 def get_or_cache(getter, url, obj, cache=True):
@@ -43,16 +47,19 @@ def get_or_cache(getter, url, obj, cache=True):
 
     if cache:
         if os.path.exists(fpath):
-            return json.load(open(fpath, 'r'))
+            return json.load(open(fpath, "w", encoding="utf-8"))
         if os.path.exists(fpath + ".gz"):
             return json.load(gzip.open(fpath + ".gz"))
 
-    jeez = getter(url)
-    if 'ExceptionMessage' in jeez:
-        print(f"Error getting: {url}: {jeez['ExceptionMessage']}")
+    req = getter(url)
+    print(req)
+    # ipython
+    __import__("IPython").embed()
+    if "ExceptionMessage" in req:
+        print(f"Error getting: {url}: {req['ExceptionMessage']}")
         return None
-    json.dump(jeez, open(fpath, 'w'))
-    return jeez
+    json.dump(req, open(fpath, "w", encoding="utf-8"))
+    return req
 
 
 def get_filej(fff, dtype="plans"):
@@ -73,7 +80,7 @@ def get_filej(fff, dtype="plans"):
     return json.load(fp)
 
 
-def ppt(ss, ppt='-', ll=None):
+def ppt(ss, ppt="-", ll=None):
     if not ll:
         ll = len(ss)
     ret = ss + "\n"
@@ -90,21 +97,21 @@ def colourText(text, color, colorize=True):
         return text
 
     colours = {
-        'red': "\033[1;31m",
-        'title': "\033[4;40m",
-        'yellow': "\033[1;33m",
-        'blue': "\033[1;34m",
-        'blue_reverse': "\033[1;44m",
-        'cyan': "\033[1;36m",
-        'cyan_surligned': "\033[4;36m",
-        'cyan_italic': "\033[3;37m",
-        'green': "\033[1;32m",
-        'grey': "\033[1;30m",
-        'magenta_surligned': "\033[4;35m",
-        'magenta': "\033[1;35m",
-        'white': "\033[1;37m",
-        'white_bold': "\033[1;40m",
-        'reset': "\033[0;0m",
+        "red": "\033[1;31m",
+        "title": "\033[4;40m",
+        "yellow": "\033[1;33m",
+        "blue": "\033[1;34m",
+        "blue_reverse": "\033[1;44m",
+        "cyan": "\033[1;36m",
+        "cyan_surligned": "\033[4;36m",
+        "cyan_italic": "\033[3;37m",
+        "green": "\033[1;32m",
+        "grey": "\033[1;30m",
+        "magenta_surligned": "\033[4;35m",
+        "magenta": "\033[1;35m",
+        "white": "\033[1;37m",
+        "white_bold": "\033[1;40m",
+        "reset": "\033[0;0m",
     }
     s = f"{colours[color]}{text}{colours['reset']}"
     return s

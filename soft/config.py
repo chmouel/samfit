@@ -17,10 +17,7 @@ import os
 TR_USERNAME = "samfit"
 TP_USERNAME = "chmouel"
 
-if os.path.exists(os.path.expanduser("~/Work/samfit")):
-    BASE_DIR = os.path.expanduser("~/Work/samfit")
-else:
-    BASE_DIR = os.path.expanduser("~/Dropbox/Documents/Fitness/traineroad")
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 # TODO: remove this and move to TP_TYPE
 TP_CYCLING_TYPE_ID = 2

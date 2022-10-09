@@ -20,7 +20,6 @@ import time
 import html2text
 import requests
 
-import traineroad
 import trainingpeaks.session as tpsess
 import utils
 import config
@@ -28,24 +27,27 @@ import config
 
 def import_tr_workouts(args):
     if args.everything:
-        todos = sorted([
-            int(re.sub(r"(\d+).*", r"\1", os.path.basename(x)))
-            for x in glob.glob(
-                os.path.join(config.BASE_DIR, "workout", "*.json*"))
-        ])
+        todos = sorted(
+            [
+                int(re.sub(r"(\d+).*", r"\1", os.path.basename(x)))
+                for x in glob.glob(os.path.join(config.BASE_DIR, "workout", "*.json*"))
+            ]
+        )
     else:
         todos = args.workout_ids
 
-    tr = traineroad.get_session(args)
-    tp = tpsess.get_session(args.tp_user, args.tp_password)
-    _libraries = utils.get_or_cache(tp.get,
-                                    "/exerciselibrary/v1/libraries",
-                                    f"tp_libraries_{args.tp_user}",
-                                    cache=not args.no_cache)
+    tp = tpsess.TPSession(args.tp_token)
+    _libraries = utils.get_or_cache(
+        tp.get,
+        "/exerciselibrary/v1/libraries",
+        f"tp_libraries_{args.tp_user}",
+        cache=not args.no_cache,
+    )
 
     libraries = [
-        x['exerciseLibraryId'] for x in _libraries
-        if x['libraryName'] == args.library_name
+        x["exerciseLibraryId"]
+        for x in _libraries
+        if x["libraryName"] == args.library_name
     ]
     if not libraries:
         raise Exception(
@@ -54,14 +56,14 @@ def import_tr_workouts(args):
     library_id = libraries[0]
 
     args.filter_library_regexp = f"^{args.library_name}$"
-    workouts = get_all_workouts_library(args, cache=not args.no_cache)
+    workouts = get_all_workouts_library(args, tp, cache=not args.no_cache)
 
     for workout_id in todos:
         update = None
         cache_path = os.path.join(config.BASE_DIR, "workout", str(workout_id))
 
         workout = utils.get_or_cache(
-            tr.get,
+            None,
             f"/workoutdetails/{workout_id}",
             cache_path,
         )
@@ -70,8 +72,8 @@ def import_tr_workouts(args):
             print(f"Skipping '{workout_id}', there is an issue loading it")
             continue
 
-        if 'Workout' in workout:
-            workout = workout['Workout']
+        if "Workout" in workout:
+            workout = workout["Workout"]
 
         workout_name = workout["Details"]["WorkoutName"]
         if workout_name in workouts:
@@ -88,50 +90,49 @@ def import_tr_workouts(args):
 
         _add_cadence_plan(convert)
 
-        add_workout(args, library_id, convert, update=update)
+        add_workout(args, library_id, convert, tp, update=update)
 
         if not args.test:
             time.sleep(2)
 
 
-def add_workout(args, library_id, dico, update=None):
+def add_workout(args, library_id, dico, tp, update=None):
     try:
         if not args.test:
-            tp = tpsess.get_session(args.tp_user, args.tp_password)
             url = f"/exerciselibrary/v1/libraries/{library_id}/items"
             method = tp.post
-            updateword = 'Adding'
+            updateword = "Adding"
             if update:
                 url = f"{url}/{update}"
                 dico["exerciseLibraryItemId"] = update
                 method = tp.put
-                updateword = 'Updating'
+                updateword = "Updating"
             r = method(url, dico)
             r.raise_for_status()
     except requests.exceptions.HTTPError as err:
-        from pprint import pprint as p
-        p(dico)
+        __import__("pprint").pprint(dico)
         raise err
 
-    print(
-        f"{updateword} '{dico['itemName']}' to '{args.library_name}' library")
+    print(f"{updateword} '{dico['itemName']}' to '{args.library_name}' library")
 
 
 def convert_tr2tp(workout, library_id):
-    if not workout['Details']['WorkoutDescription'] or not \
-       workout['Details']['GoalDescription']:
+    if (
+        not workout["Details"]["WorkoutDescription"]
+        or not workout["Details"]["GoalDescription"]
+    ):
         return {}
 
-    category_text = ''
-    for x in workout['Tags']:
-        category_text += "#" + x['Text'].replace(" ", "_") + " "
+    category_text = ""
+    for x in workout["Tags"]:
+        category_text += "#" + x["Text"].replace(" ", "_") + " "
 
-    desc = workout['Details']['WorkoutDescription'] + "\n\n" + category_text
+    desc = workout["Details"]["WorkoutDescription"] + "\n\n" + category_text
 
-    coachComments = workout['Details']['GoalDescription']
+    coachComments = workout["Details"]["GoalDescription"]
     ret = {
-        'description': html2text.html2text(desc),
-        'coachComments': html2text.html2text(coachComments),
+        "description": html2text.html2text(desc),
+        "coachComments": html2text.html2text(coachComments),
         "exerciseId": None,
         "workoutTypeId": config.TP_CYCLING_TYPE_ID,
         "itemName": workout["Details"]["WorkoutName"],
@@ -145,14 +146,14 @@ def convert_tr2tp(workout, library_id):
             "primaryIntensityTargetOrRange": "target",
             "primaryIntensityMetric": "percentOfFtp",
             "primaryLengthMetric": "duration",
-            'structure': []
-        }
+            "structure": [],
+        },
     }
 
-    total = len(workout['intervalData'][1:]) - 1
+    total = len(workout["intervalData"][1:]) - 1
     count = 0
-    for interval in workout['intervalData'][1:]:
-        name = interval['Name']
+    for interval in workout["intervalData"][1:]:
+        name = interval["Name"]
         intensityClass = "active"
 
         if name == "Fake" and count == 0:
@@ -165,42 +166,35 @@ def convert_tr2tp(workout, library_id):
             intensityClass = "rest"
             name = "Recovery"
         step = {
-            "type":
-            "step",
-            "length": {
-                "value": 1,
-                "unit": "repetition"
-            },
-            "steps": [{
-                "name":
-                name,
-                "length": {
-                    "value": int(interval['End'] - interval['Start']),
-                    "unit": "second"
-                },
-                "targets": [{
-                    "minValue":
-                    int(interval['StartTargetPowerPercent'])
-                }],
-                "intensityClass":
-                intensityClass,
-                "openDuration":
-                False
-            }]
+            "type": "step",
+            "length": {"value": 1, "unit": "repetition"},
+            "steps": [
+                {
+                    "name": name,
+                    "length": {
+                        "value": int(interval["End"] - interval["Start"]),
+                        "unit": "second",
+                    },
+                    "targets": [{"minValue": int(interval["StartTargetPowerPercent"])}],
+                    "intensityClass": intensityClass,
+                    "openDuration": False,
+                }
+            ],
         }
 
         count += 1
-        ret['structure']['structure'].append(step)
+        ret["structure"]["structure"].append(step)
     return ret
 
 
-def get_all_workouts_library(args, cache=True, full=False):
-    tp = tpsess.get_session(args.tp_user, args.tp_password)
-    libraries = utils.get_or_cache(tp.get, "/exerciselibrary/v1/libraries",
-                                   f"tp_libraries_{args.tp_user}")
+def get_all_workouts_library(args, tp, cache=True, full=False):
+    libraries = utils.get_or_cache(
+        tp.get, "/exerciselibrary/v1/libraries", f"tp_libraries_{args.tp_user}"
+    )
     libraries = [
-        x['exerciseLibraryId'] for x in libraries
-        if re.match(args.filter_library_regexp, x['libraryName'])
+        x["exerciseLibraryId"]
+        for x in libraries
+        if re.match(args.filter_library_regexp, x["libraryName"])
     ]
 
     if not libraries:
@@ -210,30 +204,31 @@ def get_all_workouts_library(args, cache=True, full=False):
     for library in libraries:
         ljson = utils.get_or_cache(
             tp.get,
-            f'/exerciselibrary/v1/libraries/{library}/items',
+            f"/exerciselibrary/v1/libraries/{library}/items",
             f"tp_library_{library}",
-            cache=cache)
+            cache=cache,
+        )
         for exercise in ljson:
             if full:
-                ret[exercise['itemName']] = exercise
+                ret[exercise["itemName"]] = exercise
             else:
-                ret[exercise['itemName']] = (exercise['itemName'],
-                                             exercise['exerciseLibraryItemId'])
+                ret[exercise["itemName"]] = (
+                    exercise["itemName"],
+                    exercise["exerciseLibraryItemId"],
+                )
 
     return ret
 
 
-def update_workout(args, library_id, item_id, dico):
+def update_workout(args, library_id, item_id, dico, tp):
     try:
         if not args.test:
-            tp = tpsess.get_session(args.tp_user, args.tp_password)
             r = tp.put(
-                f"/exerciselibrary/v1/libraries/{library_id}/items/{item_id}",
-                dico)
+                f"/exerciselibrary/v1/libraries/{library_id}/items/{item_id}", dico
+            )
             r.raise_for_status()
     except requests.exceptions.HTTPError as err:
-        from pprint import pprint as p
-        p(dico)
+        __import__("pprint").pprint(dico)
         raise err
 
     print(f"Updated '{dico['itemName']}' to '{library_id}' library")
@@ -241,35 +236,31 @@ def update_workout(args, library_id, item_id, dico):
 
 def _add_cadence_plan(w):
     steps = []
-    for step in w['structure']['structure']:
-        for sub in step['steps']:
-            if sub['intensityClass'] == 'active' and \
-               len(sub['targets']) == 2:
-                sub['targets'] = [sub['targets'][0]]
+    for step in w["structure"]["structure"]:
+        for sub in step["steps"]:
+            if sub["intensityClass"] == "active" and len(sub["targets"]) == 2:
+                sub["targets"] = [sub["targets"][0]]
 
-            if sub['intensityClass'] == 'active' and \
-               len(sub['targets']) == 1:
-                step['steps'][0]['targets'].append({
-                    "maxValue":
-                    config.ACTIVE_CADENCE_MAX,
-                    "minValue":
-                    config.ACTIVE_CADENCE_MIN,
-                    "unit":
-                    "roundOrStridePerMinute",
-                })
+            if sub["intensityClass"] == "active" and len(sub["targets"]) == 1:
+                step["steps"][0]["targets"].append(
+                    {
+                        "maxValue": config.ACTIVE_CADENCE_MAX,
+                        "minValue": config.ACTIVE_CADENCE_MIN,
+                        "unit": "roundOrStridePerMinute",
+                    }
+                )
         steps.append(step)
     return steps
 
 
-def add_cadence_plan(args):
-    workouts = get_all_workouts_library(args, full=True)
+def add_cadence_plan(args, tp):
+    workouts = get_all_workouts_library(args, tp, full=True)
 
-    for name in workouts:
-        w = workouts[name]
-        steps = _add_cadence_plan(w)
+    for _, workout in workouts.items():
+        steps = _add_cadence_plan(workout)
 
-        w['structure']['structure'] = steps
-        libraryid = w['exerciseLibraryId']
-        itemid = w['exerciseLibraryItemId']
-        update_workout(args, libraryid, itemid, w)
+        workout["structure"]["structure"] = steps
+        libraryid = workout["exerciseLibraryId"]
+        itemid = workout["exerciseLibraryItemId"]
+        update_workout(args, libraryid, itemid, workout, tp)
         time.sleep(3)

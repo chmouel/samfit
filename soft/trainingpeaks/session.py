@@ -12,135 +12,49 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
-import fcntl
-import tempfile
-import time
-import re
-
 import requests
 
-import config
-import utils
+
+# curl 'https://tpapi.trainingpeaks.com/exerciselibrary/v1/libraries'
+# -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:105.0) Gecko/20100101 Firefox/105.0' -H 'Accept: application/json, text/javascript, */*; q=0.01' -H 'Accept-Language: en,en-US;q=0.5' -H 'Accept-Encoding: gzip, deflate, br' -H 'Content-Type: application/json'
 
 
 class TPSession(object):
     categories = []
     _obligatory_headers = {
-        "Referer":
-        "https://home.trainingpeaks.com/login",
-        'User-Agent':
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:71.0) Gecko/20100101 Firefox/71.0',
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:71.0) Gecko/20100101 Firefox/71.0",
+        "Origin": "https://app.trainingpeaks.com",
+        "DNT": "1",
+        "Connection": "keep-alive",
+        "Referer": "https://app.trainingpeaks.com/",
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "same-site",
+        "Pragma": "no-cache",
+        "Cache-Control": "no-cache",
+        "TE": "trailers",
     }
-    _reauthAttempts = 1
 
-    def __init__(self, username, password):
-        self.username = username
-        self.password = password
-        rate_lock_path = tempfile.gettempdir() + "/tp_rate.localhost.lock"
-        # Ensure the rate lock file exists (...the easy way)
-        open(rate_lock_path, "a").close()
-        self._rate_lock = open(rate_lock_path, "r+")
+    def __init__(self, token):
+        self.token = token
 
-        self.session = None
-        self.athlete_id = None
+    def __getattr__(self, name):
+        def _(*args, **kwargs):
+            return self.session(name, *args, **kwargs)
 
-    def init(self):
-        if self.session is None:
-            self._get_session()
+        return _
 
-    def _request_with_reauth(self, req_lambda, email=None, password=None):
-        for i in range(self._reauthAttempts + 1):
-            session = self._get_session(email=email, password=password)
-            self._rate_limit()
-            result = req_lambda(session)
-            if result.status_code not in (403, 500):
-                return result
-        return result
-
-    def _rate_limit(self):
-        min_period = 1
-        fcntl.flock(self._rate_lock, fcntl.LOCK_EX)
-        try:
-            self._rate_lock.seek(0)
-            last_req_start = self._rate_lock.read()
-            if not last_req_start:
-                last_req_start = 0
-            else:
-                last_req_start = float(last_req_start)
-
-            wait_time = max(0, min_period - (time.time() - last_req_start))
-            time.sleep(wait_time)
-
-            self._rate_lock.seek(0)
-            self._rate_lock.write(str(time.time()))
-            self._rate_lock.flush()
-        finally:
-            fcntl.flock(self._rate_lock, fcntl.LOCK_UN)
-
-    def _get_session(self):
-        session = requests.Session()
-        data = {
-            "Username": self.username,
-            "Password": self.password,
-            'submit': "",
-            "IsHeaderless": "False",
-        }
-        params = {}
-        preResp = session.get(
-            "https://home.trainingpeaks.com/login", params=params)
-        if preResp.status_code != 200:
-            raise Exception("SSO prestart error %s %s" % (preResp.status_code,
-                                                          preResp.text))
-
-        match = re.findall(
-            '.*<form action=.*__RequestVerificationToken" type="hidden" value="([^"]*)"',
-            preResp.text)
-
-        if not match:
-            raise Exception("Cannot find __RequestVerificationToken in %s",
-                            preResp.text)
-
-        data['__RequestVerificationToken'] = match[0]
-        ssoResp = session.post(
-            "https://home.trainingpeaks.com/login",
-            params=params,
-            data=data,
-            allow_redirects=False,
+    def session(self, name, *args, **kwargs):
+        path = args[0]
+        print(path)
+        headers = self._obligatory_headers
+        headers.update({"Authorization": "Bearer " + self.token})
+        s = requests.Request(
+            name.upper(),
+            f"https://app.trainingpeaks.com/{path}",
+            headers=headers,
+            *args[1:],
+            **kwargs,
         )
-        if ssoResp.status_code != 302 or "temporarily unavailable" \
-           in ssoResp.text:
-            raise Exception(
-                "TPLogin error %s %s" % (ssoResp.status_code, ssoResp.text))
-        session.headers.update(self._obligatory_headers)
-
-        self.session = session
-
-    def get(self, url):
-        if not self.session:
-            self.init()
-        return self.session.get('https://tpapi.trainingpeaks.com' + url).json()
-
-    def post(self, url, jeez):
-        furl = 'https://tpapi.trainingpeaks.com' + url
-        if not self.session:
-            self.init()
-        return self.session.post(furl, json=jeez)
-
-    def delete(self, url):
-        furl = 'https://tpapi.trainingpeaks.com' + url
-        if not self.session:
-            self.init()
-        return self.session.delete(furl)
-
-    def put(self, url, jeez):
-        furl = 'https://tpapi.trainingpeaks.com' + url
-        if not self.session:
-            self.init()
-        return self.session.put(furl, json=jeez)
-
-
-def get_session(username, password):
-    if not password:
-        password = utils.get_password_from_osx(config.TP_SECURITY_SERVICE,
-                                               config.TP_SECURITY_ACCOUNT)
-    return TPSession(username, password)
+        print(s)
+        return s
