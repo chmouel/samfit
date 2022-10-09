@@ -115,7 +115,7 @@ def tr_workouts_to_tp_library(
     workout_ids: list[str] = None,
     everything: bool = False,
 ):
-    """Import workouts from TrainingPeaks to TP Library."""
+    """Import workouts from TR to TP Library."""
     verbose = True
     if not workout_ids and not everything:
         raise click.ClickException(
@@ -126,21 +126,7 @@ def tr_workouts_to_tp_library(
 
     if verbose:
         print(f"Getting workouts library for user {username}")
-    exerciselibrary_dict = tpapi.get_excercise_libraries()
-    libraries = [
-        x["exerciseLibraryId"]
-        for x in exerciselibrary_dict
-        if x["libraryName"] == library_name
-    ]
-    if not libraries:
-        raise Exception(
-            f"TP library name '{library_name}' could not be found: {exerciselibrary_dict}"
-        )
-    library_id = libraries[0]
-    if verbose:
-        print(f"Library Name and ID: {library_name} {library_id}")
-
-    library_workouts = tpapi.get_workouts_from_library(library_id)
+    library_id, library_workouts = tpapi.get_workouts_from_library(library_name)
     workout_ids = set(workout_ids)
     if everything:
         workout_ids = sorted(

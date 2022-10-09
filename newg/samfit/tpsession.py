@@ -21,7 +21,7 @@ import subprocess
 from .config import BASE_DIR
 
 
-def get_cache(obj: str, verbose: bool = False):
+def get_cache(obj: str, verbose: bool = False) -> dict | list | None:
     if "/" in obj:
         key = obj
     else:
