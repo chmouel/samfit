@@ -1,0 +1,21 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "TR plans to tp calendar",
+            "type": "shell",
+            "command": "poetry run ./main.py --verbose import tr-plans-to-tp-calendar --library-name='TRroad' --start-date='Mon 10 October' --plan-id=160 --username=lenoahb",
+            "group": {
+                "kind": "none",
+            }
+        },
+        {
+            "label": "Import TR Works into TP Library",
+            "type": "shell",
+            "command": "poetry run ./main.py --verbose import tr-workouts-to-tp-library --library-name='TRroad' --everything",
+            "group": {
+                "kind": "test",
+            }
+        }
+    ]
+}
