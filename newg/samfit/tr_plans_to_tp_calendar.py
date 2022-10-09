@@ -21,16 +21,16 @@ def tr_plans_to_tp_calendar(
     token: str = "",
     library_name: str = "",
     plan_id: int = 0,
-    start_date: str = None,
+    start_date: str = "",
     verbose: bool = False,
 ):
     """Import plans from TR to TP Calendar."""
     verbose = True
     tpapi = TPApi(username=username, token=token, verbose=verbose)
-    start_date = dtparser.parse(start_date)
-    if start_date.weekday() != 0:
-        raise Exception(f"{start_date.strftime('%a %d/%m')} should start on a monday")
-    cursor_date = start_date - datetime.timedelta(days=1)
+    thedate: datetime.datetime = dtparser.parse(start_date)
+    if thedate.weekday() != 0:
+        raise Exception(f"{thedate.strftime('%a %d/%m')} should start on a monday")
+    cursor_date = thedate - datetime.timedelta(days=1)
 
     plan = get_cache(f"plans/{plan_id}", verbose=verbose)["Plan"]
     if not plan:
@@ -82,9 +82,9 @@ def tr_plans_to_tp_calendar(
         for workout in day:
             if isinstance(workout, dict):  # NOTE: this is a note
                 coachComment = (
-                    workout["coachComment"]
-                    and html2text.html2text(workout["coachComment"])
-                    or ""
+                    html2text.html2text(workout["coachComment"])
+                    if workout["coachComment"]
+                    else ""
                 )
                 description = html2text.html2text(workout["description"] or "")
                 tpapi.create_calendar_note(

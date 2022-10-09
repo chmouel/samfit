@@ -21,7 +21,7 @@ import subprocess
 from .config import BASE_DIR
 
 
-def get_cache(obj: str, verbose: bool = False) -> dict | list | None:
+def get_cache(obj: str, verbose: bool = False) -> dict[str, dict] | list | None:
     if "/" in obj:
         key = obj
     else:
@@ -56,7 +56,7 @@ def store_cache(cache_id: str, content: str, verbose: bool = False) -> None:
     if verbose:
         print(f"Storing cache: {fpath}")
     with gzip.open(fpath, "wb") as f:
-        f.write(content)
+        f.write(content.encode(encoding="utf-8"))
 
 
 def do_curl(
@@ -65,11 +65,11 @@ def do_curl(
     method: str = "GET",
     as_json=False,
     return_retcode=False,
-    cache_id: str = None,
-    data: dict | list = None,
+    cache_id: str = "",
+    data: dict | list | None = None,
     test: bool = False,
     verbose: bool = False,
-) -> str | dict | int:
+) -> str | dict | int | list:
     if cache_id and method == "GET":
         cached = get_cache(cache_id, verbose=verbose)
         if cached:
@@ -115,7 +115,7 @@ def do_curl(
         return {}
     elif as_json:
         if cache_id:
-            store_cache(cache_id, run.stdout, verbose=verbose)
+            store_cache(cache_id, run.stdout.decode(), verbose=verbose)
         return json.loads(run.stdout)
     else:
-        return run.stdout
+        return run.stdout.decode()

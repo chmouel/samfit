@@ -145,7 +145,7 @@ def tr_workouts_to_tp_library(
             verbose=verbose,
             cache_id=f"workout/{workout_id}",
         )
-        if "Workout" in workout:
+        if "Workout" in workout:  # type: ignore
             workout = workout["Workout"]
         workout_name = workout["Details"]["WorkoutName"]
         print(f"Workout ID: {workout_id}, Name: {workout_name}")
