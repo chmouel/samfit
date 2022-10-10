@@ -16,6 +16,13 @@ from .tpsession import get_cache
 @click.option("--library-name", help="TP Library Name", required=True)
 @click.option("--start-date", type=str, required=True)
 @click.option("--plan-id", type=int, required=True)
+@click.option(
+    "--switch-days",
+    "-s",
+    type=str,
+    multiple=True,
+    help="colon based separated from/todays with multiple, ie: -s Monday:Friday -s Tuesday:Thursday",
+)
 def tr_plans_to_tp_calendar(
     username: str = "",
     token: str = "",
@@ -23,11 +30,22 @@ def tr_plans_to_tp_calendar(
     plan_id: int = 0,
     start_date: str = "",
     verbose: bool = False,
+    switch_days: dict = None,
 ):
     """Import plans from TR to TP Calendar."""
     verbose = True
     tpapi = TPApi(username=username, token=token, verbose=verbose)
     thedate: datetime.datetime = dtparser.parse(start_date)
+    switch_days_dict = {}
+    if switch_days:
+        for switch_day in switch_days:
+            for switch in switch_day.split(","):
+                from_day, to_day = switch.split(":")
+                if from_day not in calendar.day_name:
+                    raise ValueError(f"{from_day} is not a real day")
+                if to_day not in calendar.day_name:
+                    raise ValueError(f"{to_day} is not a real day")
+                switch_days_dict[from_day] = to_day
     if thedate.weekday() != 0:
         raise Exception(f"{thedate.strftime('%a %d/%m')} should start on a monday")
     cursor_date = thedate - datetime.timedelta(days=1)
@@ -43,18 +61,23 @@ def tr_plans_to_tp_calendar(
         print(f"Import Plan: {plan_id}/{plan_name}")
     ret = {}
 
-    switch_days = {"Tuesday": "Monday", "Thursday": "Wednesday", "Saturday": "Friday"}
+    print(switch_days_dict)
     newplan = []
     for week in plan["Weeks"]:
         newweek = {}
         for item in week:
             if item not in calendar.day_name:
                 newweek[item] = week[item]
-        for key, value in switch_days.items():
+        for key, value in switch_days_dict.items():
             newweek[value] = week[value] + week[key]
 
-        newplan.append(newweek)
+        for day in week:
+            if day not in switch_days_dict and day not in switch_days_dict.values():
+                newweek[day] = week[day]
 
+        newplan.append(newweek)
+    __import__("pprint").pp(newplan)
+    __import__("sys").exit(0)
     for week in newplan:
         for day in list(calendar.day_name):
             cursor_date = cursor_date + datetime.timedelta(days=1)

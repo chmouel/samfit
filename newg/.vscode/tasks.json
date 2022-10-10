@@ -4,7 +4,7 @@
         {
             "label": "TR plans to tp calendar",
             "type": "shell",
-            "command": "poetry run ./main.py --verbose import tr-plans-to-tp-calendar --library-name='TRroad' --start-date='Mon 10 October' --plan-id=160 --username=lenoahb",
+            "command": "poetry run ./main.py --verbose import tr-plans-to-tp-calendar --library-name='TRroad' --start-date='Mon 10 October' --plan-id=160 --username=lenoahb -s Tuesday:Monday -s Thursday:Wednesday -s Saturday:Friday",
             "group": {
                 "kind": "none",
             }
