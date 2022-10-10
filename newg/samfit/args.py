@@ -5,7 +5,7 @@ tp_username_opt = click.option(
 )
 
 tp_token_opt = click.option(
-    "--token", "-u", help="TP Token", envvar="TP_TOKEN", required=True
+    "--token", help="TP Token", envvar="TP_TOKEN", required=True
 )
 
 
