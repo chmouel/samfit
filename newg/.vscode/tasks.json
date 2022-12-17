@@ -16,6 +16,14 @@
             "group": {
                 "kind": "test",
             }
+        },
+        {
+            "label": "Import exported TP Plans to TP",
+            "command": "poetry run ./main.py import tp-plans-to-plans Ironman-Training 19-12-2022",
+            "type": "shell",
+            "group": {
+                "kind": "test",
+            }
         }
     ]
 }
