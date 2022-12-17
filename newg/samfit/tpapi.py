@@ -104,6 +104,27 @@ class TPApi:
 
         print(f"Workout: '{name}' on {date.strftime('%a %Y-%b-%d')} created")
 
+    def create_calendar_workout(
+        self,
+        workout: dict,
+        date,
+        test: bool,
+    ) -> None:
+        if test:
+            print(workout)
+
+        athlete_id = workout["athleteId"]
+        do_curl(
+            self.token,
+            f"/fitness/v3/athletes/{athlete_id}/workouts",
+            method="POST",
+            verbose=self.verbose,
+            data=workout,
+        )
+        print(
+            f"Workout: '{workout['title']}' id on {date.strftime('%a %Y-%b-%d')} created"
+        )
+
     def get_excercise_libraries(self):
         return do_curl(
             self.token,

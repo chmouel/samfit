@@ -17,6 +17,7 @@ import gzip
 import json
 import pathlib
 import subprocess
+import sys
 
 from .config import BASE_DIR
 
@@ -26,7 +27,7 @@ def get_cache(obj: str, verbose: bool = False) -> dict[str, dict] | list | None:
         key = obj
     else:
         key = f"cache/{obj}"
-    globpath = pathlib.Path(BASE_DIR) / f"{key}-*"
+    globpath = pathlib.Path(BASE_DIR) / f"{key}*"
     tryglobs = glob.glob(globpath.as_posix())
     if not tryglobs:
         globpath = pathlib.Path(BASE_DIR) / f"{key}.*"
@@ -79,9 +80,8 @@ def do_curl(
         data_str = json.dumps(data).replace("'", "")
         data_str = f"-d '{data_str}'"
         method = "POST"
-    test_str = test and "echo " or ""
     method_str = f"-X {method.upper()}" if method.upper() != "GET" else ""
-    command = f"""{test_str} curl -f 'https://tpapi.trainingpeaks.com/{url.lstrip("/")}' \
+    command = f"""curl -f 'https://tpapi.trainingpeaks.com/{url.lstrip("/")}' \
     {method_str} \
     {data_str} \
     -H 'Accept-Encoding: gzip, deflate, br' \
@@ -100,6 +100,8 @@ def do_curl(
     -H 'Sec-Fetch-Site: same-site' \
     -H 'TE: trailers' \
     -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:105.0) Gecko/20100101 Firefox/105.0' """
+    if test:
+        return command
     try:
         run = subprocess.run(command, check=True, shell=True, capture_output=True)
     except subprocess.CalledProcessError as e:

@@ -112,7 +112,7 @@ def tr_workouts_to_tp_library(
     username: str = "",
     token: str = "",
     library_name: str = "",
-    workout_ids: list[str] = None,
+    workout_ids: list[str] = [],
     everything: bool = False,
 ):
     """Import workouts from TR to TP Library."""

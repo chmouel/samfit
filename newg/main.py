@@ -3,6 +3,7 @@
 import samfit.args
 import samfit.tr_workouts_to_tp_library
 import samfit.tr_plans_to_tp_calendar
+import samfit.tp_plans_to_plans
 
 
 def main():
