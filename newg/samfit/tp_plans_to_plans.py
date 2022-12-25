@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import calendar as gcal
 import datetime
-import sys
 import time
 
 import click
@@ -30,7 +29,7 @@ def tp_plans_to_plans(
     athlete_id = tpapi.get_user_info()["user"]["personId"]
     date = dtparser.parse(start_date)
     if date.weekday() != 0:
-        raise Exception("%s don't start on a monday" % (str(start_date)))
+        raise Exception(f"{start_date} don't start on a monday")
 
     plan = get_cache(f"plans/TP-{plan_name}", verbose=verbose)
     if not plan:
@@ -60,7 +59,7 @@ def tp_plans_to_plans(
                     cursor_date = cursor_date + datetime.timedelta(hours=1)
             ret[cursor_date] = dayp
 
-    for day in ret:
+    for day in ret.values():
         for workout in ret[day]:
             tpapi.create_calendar_workout(workout, day, True)
             time.sleep(2)

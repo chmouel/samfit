@@ -119,5 +119,4 @@ def do_curl(
         if cache_id:
             store_cache(cache_id, run.stdout.decode(), verbose=verbose)
         return json.loads(run.stdout)
-    else:
-        return run.stdout.decode()
+    return run.stdout.decode()
